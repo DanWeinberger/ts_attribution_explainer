@@ -41,6 +41,11 @@ if (file.exists(cache_file)) {
   saveRDS(combined, cache_file)
 }
 
+
+# nssp <- vroom::vroom('https://github.com/PopHIVE/Ingest/raw/refs/heads/main/data/nssp/standard/data.csv.gz') %>%
+# filter(geography=='09') %>%
+# mutate(pct_any = percent_visits_rsv+percent_visits_flu+percent_visits_covid)
+
 plot_df <- combined %>%
   filter(date >= as.Date("2012-07-01"), date <= as.Date("2019-06-30"))
 
