@@ -100,13 +100,19 @@ rsv2_s <- rsv2 / max(rsv2)
 sin1_2 <- sin(2 * pi * t2 / 52);  cos1_2 <- cos(2 * pi * t2 / 52)
 sin2_2 <- sin(4 * pi * t2 / 52);  cos2_2 <- cos(4 * pi * t2 / 52)
 
-# ── Pneumonia: no long-term trend; strong flu spike; low overdispersion ───
-log_mu2 <- (5.50 +
-             0.45 * sin1_2 - 0.32 * cos1_2 +   # harmonic amplitude ≈ 0.55
-             0.12 * sin2_2 + 0.05 * cos2_2 +
-             1.00 * flu2_s + 0.45 * rsv2_s)     # flu log-RR raised to 1.0
+# ── Pneumonia: identity link; nonlinear virus interaction ────────────────
+# mu = int + seasonal harmonics + exp(b1*flu + b2*rsv) + b3*rsv + b4*flu
+int2   <- 200   # baseline count
+b3_rsv <- 30    # linear rsv effect (counts)
+b4_flu <- 80    # linear flu effect (counts)
 
-pneu2 <- rnbinom(n2, mu = exp(log_mu2), size = 40)  # size↑ → cleaner signal
+mu2 <- (int2 +
+          12 * sin1_2 - 8 * cos1_2 +            # seasonal baseline
+           4 * sin2_2 + 2 * cos2_2 +
+          b3_rsv * rsv2_s + b4_flu * flu2_s)    # linear virus effects
+mu2 <- pmax(1, mu2)                             # keep mu positive
+
+pneu2 <- rnbinom(n2, mu = mu2, size = 40)       # size↑ → cleaner signal
 
 df2 <- tibble(
   date  = dates2,
@@ -215,6 +221,179 @@ df2 <- df2 |>
 
 ---
 
+## Link Function Comparison: Log vs Identity
+
+```{r link-comparison}
+# ── Fit both link functions ────────────────────────────────────────────────
+fit_log <- fit  # already fitted above
+
+fit_id <- glm(
+  pneu ~ sin1 + cos1 + sin2 + cos2 + flu_s + rsv_s,
+  data    = df2,
+  family  = poisson(link = "identity"),
+  start   = coef(fit_log) |> (\(b) c(exp(b[1]), b[-1]))()  # sensible starting values
+)
+
+# ── Collect GOF statistics ─────────────────────────────────────────────────
+gof <- tibble(
+  Link         = c("log", "identity"),
+  AIC          = c(AIC(fit_log), AIC(fit_id)),
+  Deviance     = c(deviance(fit_log), deviance(fit_id)),
+  Null_Dev     = c(fit_log$null.deviance, fit_id$null.deviance),
+  df_resid     = c(df.residual(fit_log), df.residual(fit_id))
+) |>
+  mutate(
+    Pseudo_R2    = 1 - Deviance / Null_Dev,
+    RMSE         = c(
+      sqrt(mean((df2$pneu - fitted(fit_log))^2)),
+      sqrt(mean((df2$pneu - fitted(fit_id))^2))
+    )
+  ) |>
+  select(Link, AIC, Deviance, Pseudo_R2, RMSE)
+
+knitr::kable(
+  gof,
+  digits  = c(0, 1, 1, 4, 2),
+  caption = "Table 1: Goodness-of-fit comparison — Poisson log vs identity link",
+  col.names = c("Link", "AIC", "Residual Deviance", "Pseudo R²", "RMSE")
+)
+```
+
+```{r link-comparison-plot}
+#| fig-cap: "Observed weekly pneumonia counts (black points) vs fitted values from Poisson models with log link (blue) and identity link (orange). Shaded bands are 95% pointwise CIs on the mean."
+
+pred_id <- predict(fit_id, se.fit = TRUE)
+
+df_compare <- df2 |>
+  select(date, pneu) |>
+  mutate(
+    log_fit    = fitted(fit_log),
+    log_lo     = exp(predict(fit_log, se.fit = TRUE)$fit - 1.96 * predict(fit_log, se.fit = TRUE)$se.fit),
+    log_hi     = exp(predict(fit_log, se.fit = TRUE)$fit + 1.96 * predict(fit_log, se.fit = TRUE)$se.fit),
+    id_fit     = fitted(fit_id),
+    id_lo      = pmax(0, pred_id$fit - 1.96 * pred_id$se.fit),
+    id_hi      = pred_id$fit + 1.96 * pred_id$se.fit
+  )
+
+ggplot(df_compare, aes(x = date)) +
+  geom_ribbon(aes(ymin = log_lo, ymax = log_hi), fill = "#2166ac", alpha = 0.15) +
+  geom_ribbon(aes(ymin = id_lo,  ymax = id_hi),  fill = "#d6604d", alpha = 0.15) +
+  geom_line(aes(y = log_fit, color = "log"),      linewidth = 0.7) +
+  geom_line(aes(y = id_fit,  color = "identity"), linewidth = 0.7, linetype = "dashed") +
+  geom_point(aes(y = pneu), color = "black", size = 0.6, alpha = 0.45) +
+  scale_color_manual(
+    values = c("log" = "#2166ac", "identity" = "#d6604d"),
+    labels = c("log" = "Poisson (log)", "identity" = "Poisson (identity)")
+  ) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = comma_format()) +
+  labs(
+    y       = "Weekly hospitalizations",
+    color   = "Link function",
+    title   = "Figure 2: Fitted Values by Link Function",
+    subtitle = "Shaded bands = 95% CI on fitted mean"
+  ) +
+  theme_ts(legend.position = "top")
+```
+
+```{r burden-comparison}
+#| fig-cap: "10-year attributable burden estimates (RSV and Influenza) from both link functions, with percentage of total modeled hospitalizations."
+
+# ── Decompose identity-link model ─────────────────────────────────────────
+# Identity link: mu = b0 + b_seas + b_flu*flu + b_rsv*rsv
+# so components are additive directly — no exp() needed
+b_id <- coef(fit_id)
+
+id_baseline <- b_id["(Intercept)"] +
+               b_id["sin1"]*df2$sin1 + b_id["cos1"]*df2$cos1 +
+               b_id["sin2"]*df2$sin2 + b_id["cos2"]*df2$cos2
+
+id_comp_rsv <- pmax(0, b_id["rsv_s"] * df2$rsv_s)
+id_comp_flu <- pmax(0, b_id["flu_s"] * df2$flu_s)
+
+# ── True attributable burden from the data-generating process ─────────────
+# DGP is purely linear: mu = int + seasonal + b3_rsv*rsv_s + b4_flu*flu_s
+# so true component contributions are simply the linear terms summed over time
+true_burden <- tibble(
+  Pathogen   = c("RSV", "Influenza"),
+  TrueBurden = c(
+    sum(b3_rsv * df2$rsv_s),
+    sum(b4_flu * df2$flu_s)
+  )
+)
+
+# ── Summary table ─────────────────────────────────────────────────────────
+burden <- bind_rows(
+  tibble(
+    Link      = "log",
+    Pathogen  = c("RSV", "Influenza"),
+    Burden    = c(sum(df2$comp_rsv), sum(df2$comp_flu)),
+    Total_fit = sum(df2$fitted)
+  ),
+  tibble(
+    Link      = "identity",
+    Pathogen  = c("RSV", "Influenza"),
+    Burden    = c(sum(id_comp_rsv), sum(id_comp_flu)),
+    Total_fit = sum(fitted(fit_id))
+  )
+) |>
+  mutate(
+    Pct        = Burden / Total_fit * 100,
+    bar_label  = sprintf("%s  (%.1f%%)", comma(round(Burden)), Pct)
+  )
+
+knitr::kable(
+  burden |> select(Link, Pathogen, Burden, Pct),
+  digits    = c(0, 0, 0, 1),
+  caption   = "Table 2: 10-year attributable burden by link function",
+  col.names = c("Link", "Pathogen", "Attributable hospitalizations", "% of total fitted")
+)
+```
+
+```{r burden-comparison-plot}
+#| fig-cap: "Side-by-side comparison of 10-year attributable burden for RSV and Influenza under Poisson log vs identity link. Percentages are of total modeled hospitalizations under each model."
+#| fig-height: 3.5
+
+ggplot(burden, aes(x = Pathogen, y = Burden, fill = Link)) +
+  geom_col(position = position_dodge(width = 0.6), width = 0.5) +
+  geom_text(
+    aes(label = bar_label),
+    position = position_dodge(width = 0.6),
+    vjust    = -0.4,
+    size     = 3.2,
+    fontface = "bold",
+    color    = "gray20"
+  ) +
+  geom_crossbar(
+    data        = true_burden,
+    aes(x = Pathogen, y = TrueBurden, ymin = TrueBurden, ymax = TrueBurden),
+    inherit.aes = FALSE,
+    width       = 0.65,
+    color       = "black",
+    linewidth   = 0.7,
+    linetype    = "dashed",
+    fatten      = 0
+  ) +
+  scale_fill_manual(
+    values = c("log" = "#2166ac", "identity" = "#d6604d"),
+    labels = c("log" = "Poisson (log)", "identity" = "Poisson (identity)")
+  ) +
+  scale_y_continuous(
+    labels = comma_format(),
+    expand = expansion(mult = c(0, 0.18))
+  ) +
+  labs(
+    x        = NULL,
+    y        = "Attributable hospitalizations (10-year total)",
+    fill     = NULL,
+    title    = "Figure 3: Attributable Burden — Log vs Identity Link",
+    subtitle = "Excess above seasonal baseline, by pathogen and link function\nDashed line = true value from data-generating process"
+  ) +
+  theme_ts(legend.position = "top")
+```
+
+---
+
 ## Figure 5: Decomposing the Signal
 
 ```{r fig5}
@@ -315,4 +494,222 @@ ggplot(virus_totals, aes(x = Component, y = Total, fill = Color)) +
     axis.text.y        = element_text(size = 12, face = "bold"),
     plot.margin        = margin(10, 120, 10, 10)
   )
+```
+
+---
+
+## Multiplicative DGP: Simulation & Model Comparison
+
+The analyses above used an **additive** data-generating process (identity link is the
+"correct" model). Here we repeat the exercise with a **multiplicative** DGP —
+`mu = exp(intercept + seasonal + b_rsv · rsv + b_flu · flu)` — so the Poisson **log**
+link is now correctly specified, and the identity link is misspecified. Comparing the
+two scenarios shows how link-function misspecification affects burden estimation in each
+direction.
+
+```{r mult-simulate}
+# ── Multiplicative DGP parameters (log scale) ─────────────────────────────
+int2_m   <- log(200)   # log intercept → exp ≈ 200 baseline counts
+b3_rsv_m <- 0.15       # log-rate RSV effect  (≈+16% at max RSV)
+b4_flu_m <- 0.40       # log-rate flu effect  (≈+49% at max flu)
+
+mu2_m <- exp(
+  int2_m +
+  12 * sin1_2 - 8 * cos1_2 +       # seasonal baseline
+   4 * sin2_2 + 2 * cos2_2 +
+  b3_rsv_m * rsv2_s + b4_flu_m * flu2_s
+)
+
+pneu2_m <- rnbinom(n2, mu = mu2_m, size = 40)
+
+df2_m <- tibble(
+  date  = dates2,
+  t     = t2,
+  pneu  = pneu2_m,
+  flu_s = flu2_s, rsv_s = rsv2_s,
+  sin1  = sin1_2, cos1 = cos1_2,
+  sin2  = sin2_2, cos2 = cos2_2
+)
+```
+
+```{r mult-fit}
+# ── Fit Poisson log link ───────────────────────────────────────────────────
+fit_log_m <- glm(
+  pneu ~ sin1 + cos1 + sin2 + cos2 + flu_s + rsv_s,
+  data   = df2_m,
+  family = poisson(link = "log")
+)
+
+# ── Fit Poisson identity link ──────────────────────────────────────────────
+fit_id_m <- glm(
+  pneu ~ sin1 + cos1 + sin2 + cos2 + flu_s + rsv_s,
+  data   = df2_m,
+  family = poisson(link = "identity"),
+  start  = coef(fit_log_m) |> (\(b) c(exp(b[1]), b[-1]))()
+)
+
+# ── GOF table ──────────────────────────────────────────────────────────────
+gof_m <- tibble(
+  Link     = c("log", "identity"),
+  AIC      = c(AIC(fit_log_m), AIC(fit_id_m)),
+  Deviance = c(deviance(fit_log_m), deviance(fit_id_m)),
+  Null_Dev = c(fit_log_m$null.deviance, fit_id_m$null.deviance)
+) |>
+  mutate(
+    Pseudo_R2 = 1 - Deviance / Null_Dev,
+    RMSE      = c(
+      sqrt(mean((df2_m$pneu - fitted(fit_log_m))^2)),
+      sqrt(mean((df2_m$pneu - fitted(fit_id_m))^2))
+    )
+  ) |>
+  select(Link, AIC, Deviance, Pseudo_R2, RMSE)
+
+knitr::kable(
+  gof_m,
+  digits    = c(0, 1, 1, 4, 2),
+  caption   = "Table 3: Multiplicative DGP — Poisson log vs identity link",
+  col.names = c("Link", "AIC", "Residual Deviance", "Pseudo R²", "RMSE")
+)
+```
+
+```{r mult-fit-plot}
+#| fig-cap: "Multiplicative DGP: observed weekly counts (black points) vs fitted values from the correctly-specified Poisson log-link model (blue) and the misspecified identity-link model (orange). Shaded bands are 95% pointwise CIs."
+
+pred_log_m <- predict(fit_log_m, se.fit = TRUE)
+pred_id_m  <- predict(fit_id_m,  se.fit = TRUE)
+
+df_compare_m <- df2_m |>
+  select(date, pneu) |>
+  mutate(
+    log_fit = fitted(fit_log_m),
+    log_lo  = exp(pred_log_m$fit - 1.96 * pred_log_m$se.fit),
+    log_hi  = exp(pred_log_m$fit + 1.96 * pred_log_m$se.fit),
+    id_fit  = fitted(fit_id_m),
+    id_lo   = pmax(0, pred_id_m$fit - 1.96 * pred_id_m$se.fit),
+    id_hi   = pred_id_m$fit + 1.96 * pred_id_m$se.fit
+  )
+
+ggplot(df_compare_m, aes(x = date)) +
+  geom_ribbon(aes(ymin = log_lo, ymax = log_hi), fill = "#2166ac", alpha = 0.15) +
+  geom_ribbon(aes(ymin = id_lo,  ymax = id_hi),  fill = "#d6604d", alpha = 0.15) +
+  geom_line(aes(y = log_fit, color = "log"),      linewidth = 0.7) +
+  geom_line(aes(y = id_fit,  color = "identity"), linewidth = 0.7, linetype = "dashed") +
+  geom_point(aes(y = pneu), color = "black", size = 0.6, alpha = 0.45) +
+  scale_color_manual(
+    values = c("log" = "#2166ac", "identity" = "#d6604d"),
+    labels = c("log" = "Poisson (log)", "identity" = "Poisson (identity)")
+  ) +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(labels = comma_format()) +
+  labs(
+    y        = "Weekly hospitalizations",
+    color    = "Link function",
+    title    = "Figure 7: Fitted Values — Multiplicative DGP",
+    subtitle = "Shaded bands = 95% CI on fitted mean"
+  ) +
+  theme_ts(legend.position = "top")
+```
+
+```{r mult-burden}
+# ── Decompose log-link model (sequential: +RSV then +flu) ─────────────────
+b_log_m       <- coef(fit_log_m)
+lp_base_m     <- b_log_m["(Intercept)"]
+lp_seasonal_m <- b_log_m["sin1"]*df2_m$sin1 + b_log_m["cos1"]*df2_m$cos1 +
+                 b_log_m["sin2"]*df2_m$sin2 + b_log_m["cos2"]*df2_m$cos2
+
+mu_none_log_m <- exp(lp_base_m + lp_seasonal_m)
+mu_rsv_log_m  <- exp(lp_base_m + lp_seasonal_m + b_log_m["rsv_s"] * df2_m$rsv_s)
+mu_full_log_m <- fitted(fit_log_m)
+
+log_m_comp_rsv <- pmax(0, mu_rsv_log_m  - mu_none_log_m)
+log_m_comp_flu <- pmax(0, mu_full_log_m - mu_rsv_log_m)
+
+# ── Decompose identity-link model ─────────────────────────────────────────
+b_id_m        <- coef(fit_id_m)
+id_m_comp_rsv <- pmax(0, b_id_m["rsv_s"] * df2_m$rsv_s)
+id_m_comp_flu <- pmax(0, b_id_m["flu_s"] * df2_m$flu_s)
+
+# ── True burden from multiplicative DGP (sequential decomposition) ─────────
+lp_seas_true_m <- 12*df2_m$sin1 - 8*df2_m$cos1 + 4*df2_m$sin2 + 2*df2_m$cos2
+
+mu_none_true_m <- exp(int2_m + lp_seas_true_m)
+mu_rsv_true_m  <- exp(int2_m + lp_seas_true_m + b3_rsv_m * df2_m$rsv_s)
+mu_full_true_m <- exp(int2_m + lp_seas_true_m + b3_rsv_m * df2_m$rsv_s + b4_flu_m * df2_m$flu_s)
+
+true_burden_m <- tibble(
+  Pathogen   = c("RSV", "Influenza"),
+  TrueBurden = c(
+    sum(mu_rsv_true_m  - mu_none_true_m),
+    sum(mu_full_true_m - mu_rsv_true_m)
+  )
+)
+
+# ── Burden summary table ───────────────────────────────────────────────────
+burden_m <- bind_rows(
+  tibble(
+    Link      = "log",
+    Pathogen  = c("RSV", "Influenza"),
+    Burden    = c(sum(log_m_comp_rsv), sum(log_m_comp_flu)),
+    Total_fit = sum(fitted(fit_log_m))
+  ),
+  tibble(
+    Link      = "identity",
+    Pathogen  = c("RSV", "Influenza"),
+    Burden    = c(sum(id_m_comp_rsv), sum(id_m_comp_flu)),
+    Total_fit = sum(fitted(fit_id_m))
+  )
+) |>
+  mutate(
+    Pct       = Burden / Total_fit * 100,
+    bar_label = sprintf("%s  (%.1f%%)", comma(round(Burden)), Pct)
+  )
+
+knitr::kable(
+  burden_m |> select(Link, Pathogen, Burden, Pct),
+  digits    = c(0, 0, 0, 1),
+  caption   = "Table 4: Multiplicative DGP — 10-year attributable burden by link function",
+  col.names = c("Link", "Pathogen", "Attributable hospitalizations", "% of total fitted")
+)
+```
+
+```{r mult-burden-plot}
+#| fig-cap: "Multiplicative DGP: 10-year attributable burden from the correctly-specified log-link model and the misspecified identity-link model. The dashed line marks the true burden derived from the data-generating process. Under a multiplicative DGP the log-link model should recover the true burden more accurately."
+#| fig-height: 3.5
+
+ggplot(burden_m, aes(x = Pathogen, y = Burden, fill = Link)) +
+  geom_col(position = position_dodge(width = 0.6), width = 0.5) +
+  geom_text(
+    aes(label = bar_label),
+    position = position_dodge(width = 0.6),
+    vjust    = -0.4,
+    size     = 3.2,
+    fontface = "bold",
+    color    = "gray20"
+  ) +
+  geom_crossbar(
+    data        = true_burden_m,
+    aes(x = Pathogen, y = TrueBurden, ymin = TrueBurden, ymax = TrueBurden),
+    inherit.aes = FALSE,
+    width       = 0.65,
+    color       = "black",
+    linewidth   = 0.7,
+    linetype    = "dashed",
+    fatten      = 0
+  ) +
+  scale_fill_manual(
+    values = c("log" = "#2166ac", "identity" = "#d6604d"),
+    labels = c("log" = "Poisson (log)", "identity" = "Poisson (identity)")
+  ) +
+  scale_y_continuous(
+    labels = comma_format(),
+    expand = expansion(mult = c(0, 0.18))
+  ) +
+  labs(
+    x        = NULL,
+    y        = "Attributable hospitalizations (10-year total)",
+    fill     = NULL,
+    title    = "Figure 8: Attributable Burden — Multiplicative DGP",
+    subtitle = "Excess above seasonal baseline, by pathogen and link function\nDashed line = true value from data-generating process"
+  ) +
+  theme_ts(legend.position = "top")
 ```
