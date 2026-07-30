@@ -9,8 +9,7 @@ website:
     background: primary
     title: "Estimating the burden of viruses from time series data"
   page-footer:
-    left: "Weinberger DM, Warren JL. Yale School of Public Health."
-    right: "Built with Quarto"
+    left: "Weinberger DM, Warren JL. Time series burden"
 
 format:
   html:
