@@ -1,0 +1,17 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Time Series Attribution for Respiratory Viruses"
+  navbar:
+    background: primary
+    title: "TS Attribution Explainer"
+
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    smooth-scroll: true
