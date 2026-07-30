@@ -1,0 +1,167 @@
+/* ---------------------------------------------------------------
+   Professional article styling for the TS attribution explainer
+   --------------------------------------------------------------- */
+
+:root {
+  --accent: #2c5f7c;
+  --accent-dark: #1d4256;
+  --text-body: #2b2f33;
+  --text-muted: #5f6b72;
+  --border-soft: #e2e6e9;
+  --bg-soft: #f7f9fa;
+}
+
+body {
+  color: var(--text-body);
+  font-size: 1.08rem;
+  line-height: 1.72;
+}
+
+/* Title block ---------------------------------------------------- */
+
+#title-block-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 3px solid var(--accent);
+}
+
+#title-block-header .title {
+  font-weight: 700;
+  color: var(--accent-dark);
+  line-height: 1.25;
+  margin-bottom: 0.75rem;
+}
+
+#title-block-header .subtitle {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.quarto-title-author-name {
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.quarto-title-affiliation,
+.quarto-title-author .affiliation {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+#title-block-header .quarto-title-meta {
+  margin-top: 1rem;
+  color: var(--text-muted);
+}
+
+/* Headings --------------------------------------------------------*/
+
+h2 {
+  color: var(--accent-dark);
+  font-weight: 700;
+  margin-top: 3rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+h1 + h2,
+#title-block-header + h2 {
+  border-top: none;
+}
+
+h3 {
+  color: var(--accent);
+  font-weight: 600;
+  margin-top: 2.25rem;
+}
+
+/* Section lead sentence ------------------------------------------ */
+
+.lead-sentence {
+  font-size: 1.22rem;
+  font-style: italic;
+  color: var(--accent-dark);
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0.25rem 0 1.5rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--accent);
+}
+
+/* Abstract callout -------------------------------------------------*/
+
+div.callout-note.callout-style-default {
+  border-left-color: var(--accent);
+}
+
+div.callout-note .callout-title-container {
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+/* Figures -----------------------------------------------------------*/
+
+.quarto-figure {
+  margin: 2.25rem auto;
+  text-align: center;
+}
+
+.quarto-figure img {
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(30, 40, 50, 0.08);
+  padding: 0.75rem;
+  background: #fff;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Model equations ---------------------------------------------------*/
+
+.equation-block {
+  background: var(--bg-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem 0.75rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* References --------------------------------------------------------*/
+
+#references ol,
+#refs ol {
+  padding-left: 1.4rem;
+}
+
+#references li,
+#refs li {
+  margin-bottom: 0.6rem;
+  color: var(--text-body);
+}
+
+/* Funding / disclosures section -------------------------------------*/
+
+#funding-and-disclosures {
+  color: var(--text-muted);
+  font-size: 0.98rem;
+}
+
+/* Table of contents ---------------------------------------------------*/
+
+#TOC {
+  font-size: 0.92rem;
+}
+
+#TOC .toc-active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Links --------------------------------------------------------------*/
+
+a {
+  color: var(--accent);
+}
+
+a:hover {
+  color: var(--accent-dark);
+}

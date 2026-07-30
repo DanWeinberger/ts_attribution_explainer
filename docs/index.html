@@ -6,9 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-17">
+<meta name="author" content="Daniel M. Weinberger">
+<meta name="author" content="Joshua L. Warren">
+<meta name="dcterms.date" content="2026-07-29">
 
-<title>Attributing Pneumonia Hospitalizations to Respiratory Viruses – Time Series Attribution for Respiratory Viruses</title>
+<title>How to Estimate the Burden of Disease Caused by Respiratory Viruses from Time Series Data – Time Series Attribution for Respiratory Viruses</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -23,41 +25,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -78,7 +45,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-f9da83f35c8a9777c3928170ebd7038e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ae4a117e28ff9af9bfd45daaca56a090.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -138,6 +105,7 @@ window.Quarto = {
 };
 </script>
 
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="floating nav-fixed quarto-light">
@@ -162,35 +130,28 @@ window.Quarto = {
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
+    <h2 id="toc-title">Contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#approaches-to-estimate-the-burden-of-disease-due-to-specific-pathogens" id="toc-approaches-to-estimate-the-burden-of-disease-due-to-specific-pathogens" class="nav-link" data-scroll-target="#approaches-to-estimate-the-burden-of-disease-due-to-specific-pathogens">Approaches to estimate the burden of disease due to specific pathogens</a></li>
+  <li><a href="#how-do-estimates-from-clinical-studies-compare-with-statistical-estimates" id="toc-how-do-estimates-from-clinical-studies-compare-with-statistical-estimates" class="nav-link" data-scroll-target="#how-do-estimates-from-clinical-studies-compare-with-statistical-estimates">How do estimates from clinical studies compare with statistical estimates?</a></li>
+  <li><a href="#what-data-do-you-need-to-estimate-disease-burden-from-aggregate-data" id="toc-what-data-do-you-need-to-estimate-disease-burden-from-aggregate-data" class="nav-link" data-scroll-target="#what-data-do-you-need-to-estimate-disease-burden-from-aggregate-data">What data do you need to estimate disease burden from aggregate data?</a></li>
+  <li><a href="#breaking-a-time-series-into-pieces-to-estimate-disease-burden" id="toc-breaking-a-time-series-into-pieces-to-estimate-disease-burden" class="nav-link" data-scroll-target="#breaking-a-time-series-into-pieces-to-estimate-disease-burden">Breaking a time series into pieces to estimate disease burden</a></li>
+  <li><a href="#using-the-model-to-calculate-attributable-burden" id="toc-using-the-model-to-calculate-attributable-burden" class="nav-link" data-scroll-target="#using-the-model-to-calculate-attributable-burden">Using the model to calculate attributable burden</a></li>
+  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions">Conclusions</a></li>
+  <li><a href="#funding-and-disclosures" id="toc-funding-and-disclosures" class="nav-link" data-scroll-target="#funding-and-disclosures">Funding and Disclosures</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  <li><a href="#technical-appendix" id="toc-technical-appendix" class="nav-link" data-scroll-target="#technical-appendix">Technical Appendix</a>
   <ul class="collapse">
-  <li><a href="#why-do-we-need-to-estimate-the-burden-of-respiratory-tract-infections-caused-by-specific-pathogens" id="toc-why-do-we-need-to-estimate-the-burden-of-respiratory-tract-infections-caused-by-specific-pathogens" class="nav-link" data-scroll-target="#why-do-we-need-to-estimate-the-burden-of-respiratory-tract-infections-caused-by-specific-pathogens"><span class="header-section-number">1.1</span> Why do we need to estimate the burden of respiratory tract infections caused by specific pathogens?</a></li>
-  <li><a href="#approaches-for-estimating-the-burden-of-disease-due-to-specific-pathogens" id="toc-approaches-for-estimating-the-burden-of-disease-due-to-specific-pathogens" class="nav-link" data-scroll-target="#approaches-for-estimating-the-burden-of-disease-due-to-specific-pathogens"><span class="header-section-number">1.2</span> Approaches for estimating the burden of disease due to specific pathogens</a></li>
-  <li><a href="#comparability-of-time-series-estimates-with-estimates-from-active-clinical-testing" id="toc-comparability-of-time-series-estimates-with-estimates-from-active-clinical-testing" class="nav-link" data-scroll-target="#comparability-of-time-series-estimates-with-estimates-from-active-clinical-testing"><span class="header-section-number">1.3</span> Comparability of time series estimates with estimates from active clinical testing</a></li>
+  <li><a href="#distinguishing-the-contribution-of-a-virus-from-seasonal-variation" id="toc-distinguishing-the-contribution-of-a-virus-from-seasonal-variation" class="nav-link" data-scroll-target="#distinguishing-the-contribution-of-a-virus-from-seasonal-variation">Distinguishing the contribution of a virus from seasonal variation</a></li>
+  <li><a href="#dealing-with-changes-in-diagnostics" id="toc-dealing-with-changes-in-diagnostics" class="nav-link" data-scroll-target="#dealing-with-changes-in-diagnostics">Dealing with changes in diagnostics</a></li>
+  <li><a href="#time-resolution" id="toc-time-resolution" class="nav-link" data-scroll-target="#time-resolution">Time resolution</a></li>
+  <li><a href="#additive-vs-multiplicative-models" id="toc-additive-vs-multiplicative-models" class="nav-link" data-scroll-target="#additive-vs-multiplicative-models">Additive vs multiplicative models</a></li>
+  <li><a href="#reporting-results" id="toc-reporting-results" class="nav-link" data-scroll-target="#reporting-results">Reporting results</a></li>
+  <li><a href="#autocorrelation" id="toc-autocorrelation" class="nav-link" data-scroll-target="#autocorrelation">Autocorrelation</a></li>
+  <li><a href="#how-much-does-model-structure-matter" id="toc-how-much-does-model-structure-matter" class="nav-link" data-scroll-target="#how-much-does-model-structure-matter">How much does model structure matter?</a></li>
   </ul></li>
-  <li><a href="#breaking-a-time-series-into-pieces" id="toc-breaking-a-time-series-into-pieces" class="nav-link" data-scroll-target="#breaking-a-time-series-into-pieces"><span class="header-section-number">2</span> Breaking a Time Series into Pieces</a>
-  <ul class="collapse">
-  <li><a href="#a-simulated-worked-example" id="toc-a-simulated-worked-example" class="nav-link" data-scroll-target="#a-simulated-worked-example"><span class="header-section-number">2.1</span> A simulated worked example</a></li>
-  </ul></li>
-  <li><a href="#the-regression-model" id="toc-the-regression-model" class="nav-link" data-scroll-target="#the-regression-model"><span class="header-section-number">3</span> The Regression Model</a>
-  <ul class="collapse">
-  <li><a href="#using-the-model-to-calculate-attributable-burden" id="toc-using-the-model-to-calculate-attributable-burden" class="nav-link" data-scroll-target="#using-the-model-to-calculate-attributable-burden"><span class="header-section-number">3.1</span> Using the model to calculate attributable burden</a></li>
-  </ul></li>
-  <li><a href="#decomposing-the-signal" id="toc-decomposing-the-signal" class="nav-link" data-scroll-target="#decomposing-the-signal"><span class="header-section-number">4</span> Decomposing the Signal</a></li>
-  <li><a href="#attributable-burden-summary" id="toc-attributable-burden-summary" class="nav-link" data-scroll-target="#attributable-burden-summary"><span class="header-section-number">5</span> Attributable Burden Summary</a></li>
-  <li><a href="#technical-considerations" id="toc-technical-considerations" class="nav-link" data-scroll-target="#technical-considerations"><span class="header-section-number">6</span> Technical Considerations</a>
-  <ul class="collapse">
-  <li><a href="#distinguishing-the-contribution-of-a-virus-from-seasonal-variation" id="toc-distinguishing-the-contribution-of-a-virus-from-seasonal-variation" class="nav-link" data-scroll-target="#distinguishing-the-contribution-of-a-virus-from-seasonal-variation"><span class="header-section-number">6.1</span> Distinguishing the contribution of a virus from seasonal variation</a></li>
-  <li><a href="#dealing-with-changes-in-diagnostics" id="toc-dealing-with-changes-in-diagnostics" class="nav-link" data-scroll-target="#dealing-with-changes-in-diagnostics"><span class="header-section-number">6.2</span> Dealing with changes in diagnostics</a></li>
-  <li><a href="#time-resolution" id="toc-time-resolution" class="nav-link" data-scroll-target="#time-resolution"><span class="header-section-number">6.3</span> Time resolution</a></li>
-  <li><a href="#additive-vs.-multiplicative-models" id="toc-additive-vs.-multiplicative-models" class="nav-link" data-scroll-target="#additive-vs.-multiplicative-models"><span class="header-section-number">6.4</span> Additive vs.&nbsp;multiplicative models</a></li>
-  <li><a href="#reporting-results" id="toc-reporting-results" class="nav-link" data-scroll-target="#reporting-results"><span class="header-section-number">6.5</span> Reporting results</a></li>
-  <li><a href="#autocorrelation" id="toc-autocorrelation" class="nav-link" data-scroll-target="#autocorrelation"><span class="header-section-number">6.6</span> Autocorrelation</a></li>
-  </ul></li>
-  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions"><span class="header-section-number">7</span> Conclusions</a></li>
   </ul>
 </nav>
 </nav>
@@ -203,19 +164,39 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Attributing Pneumonia Hospitalizations to Respiratory Viruses</h1>
-<p class="subtitle lead">A Time Series Decomposition Framework</p>
+<h1 class="title">How to Estimate the Burden of Disease Caused by Respiratory Viruses from Time Series Data</h1>
 </div>
 
 
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Authors</div>
+  <div class="quarto-title-meta-heading">Affiliations</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Daniel M. Weinberger </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            Department of Epidemiology of Microbial Diseases, Yale University, New Haven, CT
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Joshua L. Warren </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            Department of Biostatistics, Yale University, New Haven, CT
+          </p>
+      </div>
+  </div>
 
 <div class="quarto-title-meta">
 
-    
+      
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 17, 2026</p>
+      <p class="date">July 29, 2026</p>
     </div>
   </div>
   
@@ -227,671 +208,169 @@ window.Quarto = {
 </header>
 
 
-<section id="introduction" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">1</span> Introduction</h2>
-<section id="why-do-we-need-to-estimate-the-burden-of-respiratory-tract-infections-caused-by-specific-pathogens" class="level3" data-number="1.1">
-<h3 data-number="1.1" class="anchored" data-anchor-id="why-do-we-need-to-estimate-the-burden-of-respiratory-tract-infections-caused-by-specific-pathogens"><span class="header-section-number">1.1</span> Why do we need to estimate the burden of respiratory tract infections caused by specific pathogens?</h3>
-<p>Quantifying the burden of disease for different outcomes is a fundamental challenge in public health. However, most individuals seeking healthcare for respiratory tract infections are not tested for a specific pathogen. As a result, the number of cases of disease caused by individual pathogens captured by public health surveillance systems often represents a substantial undercount.</p>
-<p>For respiratory syncytial virus (RSV), many children presenting to the hospital or emergency department are tested for RSV, and most cases are correctly attributed to the virus (<a href="#fig-waffle" class="quarto-xref">Figure&nbsp;1</a>). In adults, however, testing for RSV is much less common, and fewer than 5% of cases are correctly attributed to the virus in clinical records (<a href="#fig-waffle" class="quarto-xref">Figure&nbsp;1</a>). This underdetection has been confirmed in a number of settings and using distinct methodologies.</p>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div id="fig-waffle" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-waffle-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="age_waffle_proportional.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%">
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="Abstract">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-waffle-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: The proportion of RSV hospitalizations correctly attributed to RSV in clinical records differs dramatically by age group. Children are routinely tested; adults are rarely tested, leading to severe undercounting.
-</figcaption>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Abstract
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Quantifying the burden of disease caused by different pathogens is a core task in public health and is essential for policy makers. Decisions about prioritizing different vaccine programs or other preventive investments are often based on the burden of disease and the cost effectiveness of the interventions. This is particularly important for public health interventions, like vaccines, which target specific pathogens. If the burden is not correctly captured, the resulting decisions about population health will not be based on the best evidence. The gold-standard for estimating the burden of specific pathogens involves intensive sampling of the population, an approach that is expensive and cannot be easily scaled. In this article, we discuss the role and promise of certain statistical methods that use data aggregated into time series to estimate the burden of specific viruses. We discuss how estimates from these methods compare to traditional methods for estimating burden and we provide an intuition for how these method work to break a time series into pieces and estimate the importance of each component.</p>
+</div>
+</div>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<div class="lead-sentence">
+<p>Accurate estimates of disease burden are essential for policy makers.</p>
+</div>
+<p>Quantifying the burden of disease caused by different pathogens is a core task in public health and is essential for policy makers. Decisions about prioritizing different vaccine programs or other preventive investments are often based on the burden of disease and the cost effectiveness of the interventions. This is particularly important for public health decisions targeting specific outcomes, like vaccines. If the burden is not correctly captured, the resulting decisions about population health will be inadequate.</p>
+<p>Unfortunately, estimating the burden of disease directly from routinely collected data is not reliable. Most individuals seeking healthcare for an infection are not tested for a specific microbe. As a result, the number of cases of disease caused by individual pathogens and captured by surveillance systems often represents a substantial undercount <a href="https://paperpile.com/c/2koYyH/IDYV+0GNL+b3Kf+19PC">[1–4]</a>. For example, with respiratory syncytial virus (RSV), many of the children presenting to the hospital or emergency department with respiratory symptoms during the winter virus season will get tested for RSV, and those children’s illnesses will be correctly attributed to the virus (<strong>Figure 1</strong>). In adults, however, testing for RSV is much less common. Even when tested, the amount of the virus tends to be lower in adults, reducing the sensitivity of the tests and further leading to underdetection of infected individuals <a href="https://paperpile.com/c/2koYyH/pUPo+Pojs">[5,6]</a>. As a result, fewer than 5% of people who actually have an illness caused by RSV have the virus correctly recorded as a contributing cause in their clinical records (<strong>Figure 1</strong>, <a href="https://paperpile.com/c/2koYyH/IDYV+mchc+0hFB">[1,7,8]</a>). Instead, unspecified viral pneumonia or respiratory infection could be recorded, contributing to underestimation of disease burden <a href="https://paperpile.com/c/2koYyH/EAxe+enhK">[9,10]</a>. This underdetection has been confirmed in a number of settings and using distinct methodologies <a href="https://paperpile.com/c/2koYyH/Vbgj+IDYV+PlBN+PMxG+UTol+wP7J">[1,11–15]</a>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig1-age-undercounting.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
 </figure>
 </div>
-</div>
-</div>
-<p>The gap between the true burden of disease and the reported burden has important consequences for public health. Decisions about prioritizing different vaccine programs or other preventive investments are often based on the burden of disease. If the burden is not correctly captured, the resulting decisions about population health will be inadequate. This is particularly important for public health decisions targeting specific outcomes, like vaccines. Accurate information on disease burden caused by specific pathogens can be used to prioritize interventions and to anticipate the impact and cost effectiveness of new vaccines.</p>
+<p>The goal of this article is to provide clinical and policy experts with an overview and understanding of some of the commonly used statistical models for estimating the burden of disease caused by specific pathogens. We discuss how certain types of statistical models can be used to estimate the burden of disease caused by viral pathogens by coupling pathogen-specific data with data on non-specific outcomes like pneumonia. We provide an intuition for how these analyses work, discuss issues to be aware of when evaluating the rigor of these types of studies, and consider the validity of these estimates in relation to traditional clinic-based estimates.</p>
 </section>
-<section id="approaches-for-estimating-the-burden-of-disease-due-to-specific-pathogens" class="level3" data-number="1.2">
-<h3 data-number="1.2" class="anchored" data-anchor-id="approaches-for-estimating-the-burden-of-disease-due-to-specific-pathogens"><span class="header-section-number">1.2</span> Approaches for estimating the burden of disease due to specific pathogens</h3>
-<p>To estimate the gap between the true burden of disease and the number of reported cases, a number of approaches have been employed. Many of these methods involve intensive laboratory testing of clinical cases. For instance, in the PERCH study, pneumonia cases and healthy controls were intensively tested for bacteria and viruses, and the comparisons between cases and controls were used to infer burden. The inclusion of controls was essential in that study to ensure that the detected viruses and bacteria were causally related to the symptoms and not incidentally detected. The CHAMPS study performs minimally invasive sampling of children who die with infections to infer the pathogen responsible for the death. Likewise a large study in the United States (US) comprehensively tested adults with pneumonia to estimate the burden of disease caused by RSV and other respiratory viruses.</p>
-<p>These clinical studies provide essential and high-quality data on the specific pathogens that cause disease and death. However, this type of active population-based study is costly to conduct and challenging to scale over time and across many different locations. Some studies attempt to fill in the gaps in locations without high quality clinical studies by using statistical models to extrapolate the estimates to locations where data were not collected. These types of approaches are frequently used in studies of the global burden of diseases.</p>
-<p>Statistical models can also be used to more directly estimate the burden of disease caused by specific pathogens in locations with comprehensive administrative data, like from hospitals or vital statistics. These analyses evaluate how variations in a non-specific outcome, like all-cause pneumonia, correlate with variations in specific pathogens, like influenza or RSV. These analyses assume that the true burden of disease caused by specific pathogens can be recovered by studying the similarities in the trends between these signals and estimating the association between them. This methodology has been used extensively for influenza. For example, spikes in pneumonia or cardiovascular outcomes coincide with influenza activity, and statistical models can be used to estimate how much of the increase above a seasonal baseline could be attributed to influenza.</p>
+<section id="approaches-to-estimate-the-burden-of-disease-due-to-specific-pathogens" class="level2">
+<h2 class="anchored" data-anchor-id="approaches-to-estimate-the-burden-of-disease-due-to-specific-pathogens">Approaches to estimate the burden of disease due to specific pathogens</h2>
+<p>To estimate the gap between the true burden of disease and the number of reported cases, a number of approaches have been employed. Many of these methods involve intensive and systematic laboratory testing of clinical cases to obtain active, population-based estimates of incidence. For instance, to infer the pathogen responsible for pediatric deaths, a multi-country study performed minimally invasive sampling of a systematic sample of children who die from infections, and test for a large set of pathogens <a href="https://paperpile.com/c/2koYyH/19PC">[4]</a>. Likewise a study in the United States (US) comprehensively tested adults with pneumonia to estimate the burden of disease caused by RSV and other respiratory viruses <a href="https://paperpile.com/c/2koYyH/IDYV">[1]</a>. Another large multi-country study tested pneumonia cases and healthy controls for bacteria and viruses, and the comparisons between cases and controls were used to infer burden <a href="https://paperpile.com/c/2koYyH/5t1k">[16]</a>. The inclusion of controls was essential in that study to ensure that the detected viruses and bacteria were causally related to the symptoms and not incidentally detected. These clinical studies provide essential and high-quality data on the specific pathogens that cause disease and death. However, this type of active population-based study is costly to conduct and requires localized infrastructure and expertise. Therefore it is challenging to scale over time and across many different locations. There is a need to conduct burden studies in different locations because the specific distribution of pathogens and the relative importance of bacterial and viral pathogens can differ by setting based on numerous local factors. Some studies attempt to fill in the gaps in locations without high quality clinical studies by using statistical models to extrapolate estimates using data from locations where disease burden data have been collected. These types of approaches are frequently used in studies of the global burden of disease <a href="https://paperpile.com/c/2koYyH/YQmD+jZ05+6Kx4">[17–19]</a>. Other approaches try to correct for known biases in testing and detection while extrapolating from recorded rates of disease <a href="https://paperpile.com/c/2koYyH/YWG3">[20]</a>.</p>
+<p>Statistical models can also be used to more directly estimate the burden of disease caused by specific pathogens in locations where comprehensive data are collected for hospital billing or vital statistics. These analyses, which will be the focus of this commentary, evaluate how variations over time in a non-specific outcome, like all-cause pneumonia, correlate temporally with variations in the activity of specific pathogens known to cause pneumonia, like influenza or RSV. Statistical models can be used to estimate how much of the winter increase in pneumonia is above what we typically see every winter and how much of that extra increase aligns with influenza activity. These analyses assume that the true burden of disease caused by specific pathogens can be recovered by studying the similarities in the trends between these signals and estimating the association between them. This methodology has been used extensively for influenza and for RSV <a href="https://paperpile.com/c/2koYyH/irNY+FXIG+S6sB">[21–23]</a>.</p>
 </section>
-<section id="comparability-of-time-series-estimates-with-estimates-from-active-clinical-testing" class="level3" data-number="1.3">
-<h3 data-number="1.3" class="anchored" data-anchor-id="comparability-of-time-series-estimates-with-estimates-from-active-clinical-testing"><span class="header-section-number">1.3</span> Comparability of time series estimates with estimates from active clinical testing</h3>
-<p>A key question with any statistical method is whether it produces accurate estimates. We can assess this by comparing estimates of burden obtained from statistical models with estimates of burden from intensive sampling. For example, we previously used time series models to estimate the burden of respiratory hospitalizations in New York state that could be attributed to RSV. Among adults aged 65+ years, we estimated XX cases/100,000. An intensive clinical study, conducted in several populations in the same state, where they tested all pneumonia patients for RSV, estimated an incidence of XX cases/100,000.</p>
-<p>In this article, we will discuss how statistical models can be used to estimate the burden of disease caused by specific viral pathogens by coupling pathogen-specific data with data on non-specific outcomes like pneumonia. We will build up a non-technical intuition for how these analyses work, discuss things to look for when evaluating these types of studies, and consider the validity of these estimates in relation to traditional clinic-based estimates. The goal of this article is to provide clinical and policy experts with a working understanding of some of the commonly used statistical models for estimating the burden of disease caused by specific pathogens.</p>
-<hr>
+<section id="how-do-estimates-from-clinical-studies-compare-with-statistical-estimates" class="level2">
+<h2 class="anchored" data-anchor-id="how-do-estimates-from-clinical-studies-compare-with-statistical-estimates">How do estimates from clinical studies compare with statistical estimates?</h2>
+<p>A key question with any statistical method is whether it produces accurate estimates. We can assess this by comparing estimates of burden obtained from statistical models with estimates of burden from intensive sampling in the same population. For example, we previously used statistical models to estimate the burden of respiratory hospitalizations in New York State that could be attributed to RSV. We estimated ~180 RSV hospitalizations/100,000 among adults 65+ years of age (Table S7 in <a href="https://paperpile.com/c/2koYyH/w4vw">[24]</a>). This is comparable in magnitude to a clinical study in which investigators tested all pneumonia patients for RSV over three seasons in two locations in New York and found an estimated incidence of 137-256 RSV hospitalizations per 100,000 people <a href="https://paperpile.com/c/2koYyH/IDYV">[1]</a>. This agreement across studies was further supported by a recent systematic literature review and meta-analysis that found comparable estimates of the burden of RSV across both clinical studies and those using statistical methods <a href="https://paperpile.com/c/2koYyH/Z2Gf">[25]</a>. The close correspondence of these estimates from different methods supports the validity of the statistical approaches.</p>
 </section>
+<section id="what-data-do-you-need-to-estimate-disease-burden-from-aggregate-data" class="level2">
+<h2 class="anchored" data-anchor-id="what-data-do-you-need-to-estimate-disease-burden-from-aggregate-data">What data do you need to estimate disease burden from aggregate data?</h2>
+<p>In this article, we will focus on a specific set of statistical methods that rely on the analyses of ‘time series’ data. Time series data are simply a sequence of measurements collected over time. Examples of time series data include the number of cases of pneumonia hospitalizations per week or the percent of nasopharyngeal swabs that test positive for influenza per week. To estimate burden using time series, we analyze trends shared between broad, non-specific outcomes (like all-cause pneumonia), and pathogen-specific outcomes (like positive tests for RSV). We define a mathematical formula that relates these time series and provides an estimate for how changes in the pathogen-specific time series relate to changes in the non-specific outcome. This can provide a more complete estimate of the burden of those specific pathogens.</p>
+<p>To carry out these analyses, there are two required data components. The first is a time series for a broad non-specific outcome, like hospitalizations for all-cause pneumonia or deaths due to all-cause cardiopulmonary events. The cases that are aggregated into the time series can be identified in different ways. Most commonly, diagnostic codes (e.g., International Classification of Disease, 10th revision codes, or ICD-10 codes) in healthcare or vital statistics databases are used. For instance, one could tally the number of weekly hospitalizations that have a diagnostic code representing pneumonia listed on the record (e.g., J12-J18). This non-specific time series could consist of cases caused by the specific pathogen we are interested in as well as a number of other pathogens.</p>
+<p>The second requirement is a tally of pathogen-specific activity in the population during the same time period. This should be a measure that reflects the intensity of circulation of the specific pathogen of interest, but is not necessarily a direct measure of burden for the population of interest. For example, this could be the number of lab-confirmed influenza tests by week, or it could be the number of healthcare visits with an ICD-10 code for influenza. These data could be drawn from public health surveillance data, or it could be obtained directly from healthcare databases. This ‘proxy’ measure of viral activity could be collected from the same age group or demographic group as the outcome, but it does not necessarily need to be. For instance for RSV, due to the severe undertesting of RSV in adults, using a measure of RSV intensity from young children or the overall population might provide a more accurate proxy measure.</p>
 </section>
-<section id="breaking-a-time-series-into-pieces" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="breaking-a-time-series-into-pieces"><span class="header-section-number">2</span> Breaking a Time Series into Pieces</h2>
-<p>Let’s imagine that we know the number of hospitalizations due to pneumonia in each week in a specific population (e.g., region, age group, socioeconomic group). Looking across multiple years, we typically observe some repeating patterns, with increases in hospitalization in the winter months, and occasional short-term spikes and dips above and below the typical seasonal trends due to variations in the circulation of specific pathogens.</p>
-<p>The importance of different pathogens in contributing to these patterns can differ over time. For instance, at the height of winter, more of the cases will be due to influenza or RSV. For instance in a severe flu season, we would expect to see a spike in pneumonia deaths that occurs around the same time as a spike in influenza positive tests. This can be seen in <a href="#fig-pneumonia-flu" class="quarto-xref">Figure&nbsp;2</a>, where weekly pneumonia deaths in the US (upper plot) have broad seasonal variations, and more pronounced spikes above this that line up with the flu spikes shown in the lower plot.</p>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div id="fig-pneumonia-flu" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-pneumonia-flu-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/pneumonia_flu_panels.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pneumonia-flu-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Weekly pneumonia deaths (top) and influenza activity (bottom) in the US. The spikes in pneumonia deaths track closely with peaks in influenza activity.
-</figcaption>
+<section id="breaking-a-time-series-into-pieces-to-estimate-disease-burden" class="level2">
+<h2 class="anchored" data-anchor-id="breaking-a-time-series-into-pieces-to-estimate-disease-burden">Breaking a time series into pieces to estimate disease burden</h2>
+<p>Let’s imagine that we know the number of hospitalizations due to pneumonia in each week in a specific population (e.g., region, age group, socioeconomic group). Looking across multiple years, we typically observe some repeating patterns, with increases in hospitalization in the winter months, and occasional short-term spikes and dips in the number of pneumonia hospitalizations above and below the typical seasonal trends (<strong>Figure 2</strong>). These short-term variations could be due, in part, to variations in the circulation of specific pathogens. Longer term, the numbers of hospitalizations recorded as being caused by pneumonia could increase or decrease due to changes in definitions or diagnostics, changes in demographics, changes in environmental conditions (e.g., air pollution), or changes in the underlying health of the population (e.g., chronic disease prevalence).</p>
+<p>The importance of different pathogens in contributing to these patterns can differ over the course of a season. For instance, at the height of winter, more of the cases will be due to influenza or RSV. The contributions from these viruses can often be seen in the time series as increases above a typical seasonal average. For instance, weekly pneumonia deaths in the US (<strong>Figure 2</strong>, upper panel) have broad seasonal variations, and in a severe flu season, there are clear increases above that seasonal average that line up with the spikes in influenza activity, as recorded by positive viral tests (<strong>Figure 2</strong>, lower panel).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figures/fig2-pneumonia-flu-timeseries.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
 </figure>
 </div>
-</div>
-</div>
-<section id="a-simulated-worked-example" class="level3" data-number="2.1">
-<h3 data-number="2.1" class="anchored" data-anchor-id="a-simulated-worked-example"><span class="header-section-number">2.1</span> A simulated worked example</h3>
-<p>In our example, we will use a simulated time series of pneumonia hospitalizations. This time series is made up of:</p>
-<ul>
-<li>An <strong>underlying seasonal baseline</strong>, driven by meteorological factors, social contact patterns, and other pathogens that vary seasonally</li>
-<li><strong>Increases related to influenza</strong>, with year-to-year variation in timing and intensity</li>
-<li><strong>Increases related to RSV</strong>, with a biennial pattern (higher activity in alternating years)</li>
-<li><strong>Unexplained short-term variation</strong> that is autocorrelated — when there is one week with unusually high activity, the next week is also likely to be unusually high</li>
-</ul>
-<p>When these components are added together, we get the full time series shown in <a href="#fig-raw-data" class="quarto-xref">Figure&nbsp;3</a> below.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>df_long1 <span class="ot">&lt;-</span> df2 <span class="sc">|&gt;</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, pneu, flu, rsv) <span class="sc">|&gt;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>date, <span class="at">names_to =</span> <span class="st">"series"</span>, <span class="at">values_to =</span> <span class="st">"value"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel =</span> <span class="fu">factor</span>(series,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>      <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"pneu"</span>, <span class="st">"flu"</span>, <span class="st">"rsv"</span>),</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">c</span>(</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Pneumonia Hospitalizations (weekly count)"</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">"Influenza Activity (index, 0–100)"</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="st">"RSV Activity (index, 0–100)"</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>      )</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="fu">case_match</span>(series,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">"pneu"</span> <span class="sc">~</span> <span class="st">"black"</span>,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">"flu"</span>  <span class="sc">~</span> <span class="fu">unname</span>(pal[<span class="st">"flu"</span>]),</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>      <span class="st">"rsv"</span>  <span class="sc">~</span> <span class="fu">unname</span>(pal[<span class="st">"rsv"</span>])</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_long1, <span class="fu">aes</span>(date, value)) <span class="sc">+</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_rect</span>(</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">data        =</span> winters2,</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">xmin =</span> xmin, <span class="at">xmax =</span> xmax, <span class="at">ymin =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">ymax =</span> <span class="cn">Inf</span>),</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill        =</span> <span class="st">"steelblue"</span>, <span class="at">alpha =</span> <span class="fl">0.09</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> color, <span class="at">group =</span> <span class="dv">1</span>), <span class="at">linewidth =</span> <span class="fl">0.65</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>panel, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_identity</span>() <span class="sc">+</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"1 year"</span>, <span class="at">date_labels =</span> <span class="st">"%Y"</span>) <span class="sc">+</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ts</span>(</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"gray90"</span>),</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.text         =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">11</span>)</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div id="fig-raw-data" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-raw-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="index_files/figure-html/fig-raw-data-1.png" class="img-fluid figure-img" width="960">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raw-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Simulated weekly time series for each variable, 2010–2019. Blue bands mark winter months (December–February), when respiratory viruses tend to peak.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<hr>
-</section>
-</section>
-<section id="the-regression-model" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="the-regression-model"><span class="header-section-number">3</span> The Regression Model</h2>
-<p>The goal for statistical models used for burden estimation is to take the pneumonia time series and estimate the size of each component. This is typically done in a regression framework.</p>
-<p>In the regression, the <strong>outcome variable</strong> (<span class="math inline">\(Y\)</span>) is the number of pneumonia cases or deaths in each week. <strong>Covariates</strong> (<span class="math inline">\(X\)</span>) include an indicator of influenza activity, a trend for time, and a variable that captures seasonal variations. This can be written generically as:</p>
-<p><span class="math display">\[
-\text{Expected pneumonia cases} = \underbrace{b_0}_{\text{intercept}} + \underbrace{b_1 \times \text{Influenza activity}}_{\text{flu contribution}} + \underbrace{b_2 \times \text{Seasonality}}_{\text{seasonal baseline}} + \text{Unexplained variation}
-\]</span></p>
-<p>The regression model estimates the intercept (<span class="math inline">\(b_0\)</span>), which gives the average number of cases, and the relative contributions of influenza and seasonality (<span class="math inline">\(b_1\)</span> and <span class="math inline">\(b_2\)</span>). <span class="math inline">\(b_1\)</span> acts as a multiplier that bridges the influenza activity indicator to the pneumonia time series and is the key part of the model that estimates how much pneumonia increases when influenza increases. The seasonality component (<span class="math inline">\(b_2\)</span>) is important to include as well. By including both seasonality and the influenza indicator in the model, we can more accurately estimate how much of the variability in pneumonia rates is due to influenza and how much is due to unexplained seasonal variation. <strong>If the seasonal term is omitted from the model, then all of the seasonal variation would be attributed to influenza — <span class="math inline">\(b_1\)</span> would be too large.</strong></p>
-<section id="using-the-model-to-calculate-attributable-burden" class="level3" data-number="3.1">
-<h3 data-number="3.1" class="anchored" data-anchor-id="using-the-model-to-calculate-attributable-burden"><span class="header-section-number">3.1</span> Using the model to calculate attributable burden</h3>
-<p>Once we have fit the regression above, we will have an estimate for <span class="math inline">\(b_0\)</span>, <span class="math inline">\(b_1\)</span>, and <span class="math inline">\(b_2\)</span> and can then use the completed equation to calculate the percent of pneumonia burden that is caused by influenza. The overall equation that captures the weekly number of expected cases is:</p>
-<p><span class="math display">\[
-\hat{Y} = b_0 + b_1 \times \text{Influenza} + b_2 \times \text{Seasonality}
-\]</span></p>
-<p>We can simply take this equation and <strong>set the flu term to zero</strong>. This is called a <em>counterfactual</em> and represents how many pneumonia cases we would expect if influenza had not been there:</p>
-<p><span class="math display">\[
-\hat{Y}_0 = b_0 + 0 + b_2 \times \text{Seasonality}
-\]</span></p>
-<p>We can plot the predicted value and the counterfactual value, and the <strong>area between these curves</strong> represents the expected contribution from influenza. We can sum the modeled values over multiple time points and repeat the calculation on aggregated values, which we can use to estimate the overall attributable percent by season or across all seasons.</p>
-<hr>
-</section>
-</section>
-<section id="decomposing-the-signal" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="decomposing-the-signal"><span class="header-section-number">4</span> Decomposing the Signal</h2>
-<p><a href="#fig-decomp" class="quarto-xref">Figure&nbsp;4</a> shows the full decomposition of the model fit. The stacked areas represent the three model components (seasonal baseline, RSV contribution, influenza contribution), and the total height of the stack equals the model’s fitted value at every time point. Observed counts are overlaid as points.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>decomp_long <span class="ot">&lt;-</span> df2 <span class="sc">|&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, pneu, comp_baseline, comp_rsv, comp_flu) <span class="sc">|&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols      =</span> <span class="fu">starts_with</span>(<span class="st">"comp_"</span>),</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to  =</span> <span class="st">"component"</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"value"</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">component =</span> <span class="fu">factor</span>(component,</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"comp_baseline"</span>, <span class="st">"comp_rsv"</span>, <span class="st">"comp_flu"</span>),</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Seasonal Baseline"</span>, <span class="st">"RSV"</span>, <span class="st">"Influenza"</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  ))</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>comp_colors <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Seasonal Baseline"</span> <span class="ot">=</span> <span class="fu">unname</span>(pal[<span class="st">"baseline"</span>]),</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"RSV"</span>               <span class="ot">=</span> <span class="fu">unname</span>(pal[<span class="st">"rsv"</span>]),</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Influenza"</span>         <span class="ot">=</span> <span class="fu">unname</span>(pal[<span class="st">"flu"</span>])</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(decomp_long, <span class="fu">aes</span>(date, value, <span class="at">fill =</span> component)) <span class="sc">+</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">position =</span> <span class="st">"stack"</span>, <span class="at">alpha =</span> <span class="fl">0.88</span>, <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">data        =</span> df2,</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> pneu),</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">color       =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="fl">0.75</span>, <span class="at">alpha =</span> <span class="fl">0.50</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> comp_colors) <span class="sc">+</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"1 year"</span>, <span class="at">date_labels =</span> <span class="st">"%Y"</span>) <span class="sc">+</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">comma_format</span>()) <span class="sc">+</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Expected hospitalizations / week"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ts</span>() <span class="sc">+</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="fu">guide_legend</span>(<span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">reverse =</span> <span class="cn">TRUE</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div id="fig-decomp" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-decomp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="index_files/figure-html/fig-decomp-1.png" class="img-fluid figure-img" width="960">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-decomp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Stacked area chart showing the contribution of each model component to weekly expected hospitalizations. The total height of the stack matches the model’s fitted values at every time point. Observed counts are overlaid as black points.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<hr>
-</section>
-<section id="attributable-burden-summary" class="level2" data-number="5">
-<h2 data-number="5" class="anchored" data-anchor-id="attributable-burden-summary"><span class="header-section-number">5</span> Attributable Burden Summary</h2>
-<p><a href="#fig-burden" class="quarto-xref">Figure&nbsp;5</a> shows the estimated total hospitalizations attributable to each respiratory virus over the full 10-year period, expressed as the excess above the seasonal baseline.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>virus_totals <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Component =</span> <span class="fu">c</span>(<span class="st">"Influenza"</span>, <span class="st">"RSV"</span>),</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Total     =</span> <span class="fu">c</span>(<span class="fu">sum</span>(df2<span class="sc">$</span>comp_flu), <span class="fu">sum</span>(df2<span class="sc">$</span>comp_rsv)),</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Color     =</span> <span class="fu">c</span>(pal[<span class="st">"flu"</span>], pal[<span class="st">"rsv"</span>])</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">pct_total =</span> Total <span class="sc">/</span> <span class="fu">sum</span>(df2<span class="sc">$</span>fitted) <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">bar_label =</span> <span class="fu">sprintf</span>(</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      <span class="st">"%s hospitalizations</span><span class="sc">\n</span><span class="st">(%.1f%% of total)"</span>,</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">comma</span>(<span class="fu">round</span>(Total)),</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>      pct_total</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    ),</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Component =</span> <span class="fu">fct_reorder</span>(Component, Total)</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(virus_totals, <span class="fu">aes</span>(<span class="at">x =</span> Component, <span class="at">y =</span> Total, <span class="at">fill =</span> Color)) <span class="sc">+</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.5</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> bar_label),</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust  =</span> <span class="sc">-</span><span class="fl">0.05</span>,</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">size   =</span> <span class="fl">3.8</span>,</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">fontface =</span> <span class="st">"bold"</span>,</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">color  =</span> <span class="st">"gray20"</span></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>(<span class="at">clip =</span> <span class="st">"off"</span>) <span class="sc">+</span></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_identity</span>() <span class="sc">+</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">comma_format</span>(),</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.55</span>))</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Estimated attributable hospitalizations (10-year total)"</span></span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ts</span>(</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">color =</span> <span class="st">"gray88"</span>),</span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y        =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.margin        =</span> <span class="fu">margin</span>(<span class="dv">10</span>, <span class="dv">120</span>, <span class="dv">10</span>, <span class="dv">10</span>)</span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div id="fig-burden" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-burden-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="index_files/figure-html/fig-burden-1.png" class="img-fluid figure-img" width="960">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-burden-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Estimated hospitalizations attributable to each respiratory virus over the full 10-year pre-pandemic period (excess above the seasonal baseline). Percentages are of total modeled hospitalizations.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<hr>
-</section>
-<section id="technical-considerations" class="level2" data-number="6">
-<h2 data-number="6" class="anchored" data-anchor-id="technical-considerations"><span class="header-section-number">6</span> Technical Considerations</h2>
-<section id="distinguishing-the-contribution-of-a-virus-from-seasonal-variation" class="level3" data-number="6.1">
-<h3 data-number="6.1" class="anchored" data-anchor-id="distinguishing-the-contribution-of-a-virus-from-seasonal-variation"><span class="header-section-number">6.1</span> Distinguishing the contribution of a virus from seasonal variation</h3>
-<p>With influenza, the intensity and timing of the epidemic varies considerably year-to-year. Therefore, it is typically straightforward to disentangle the effect of influenza from seasonal variations that are not caused by influenza. Some other pathogens show less year-to-year variability in epidemic timing or intensity, making it more challenging to accurately estimate the effect of the virus. This can sometimes be seen during the model fitting process as having either seasonal factors or viral terms that are unstable or have high levels of uncertainty. In these situations, it can sometimes be helpful to simultaneously model data from multiple regions or age groups that might have different seasonal patterns. It can also be helpful to explore lags between the virus and the pneumonia time series and to explore different ways to capture the consistent seasonal variations (e.g., harmonics vs penalized splines).</p>
-</section>
-<section id="dealing-with-changes-in-diagnostics" class="level3" data-number="6.2">
-<h3 data-number="6.2" class="anchored" data-anchor-id="dealing-with-changes-in-diagnostics"><span class="header-section-number">6.2</span> Dealing with changes in diagnostics</h3>
-<p>Attribution models typically assume that the association between the viral indicator and pneumonia is stable over time. However, for many viruses, the use of laboratory diagnostics changed dramatically in the period after the COVID-19 pandemic. Ignoring this change will likely lead to under-estimation of the contribution of the virus. If data on viral testing volumes over time are available, this can be used to detrend the data. A possible solution is to take a 12-month moving average of viral testing volumes and use this to adjust the number of positive tests. This avoids inappropriately removing some of the seasonal variation while still adjusting for the long-term trends. If testing data are not available, other approaches to detrending the data could be considered, like fitting a linear trend through the data and adjusting by the trend.</p>
-</section>
-<section id="time-resolution" class="level3" data-number="6.3">
-<h3 data-number="6.3" class="anchored" data-anchor-id="time-resolution"><span class="header-section-number">6.3</span> Time resolution</h3>
-<p>Ideally, these types of analyses should be conducted using <strong>weekly data</strong>. This allows the model to leverage maximum levels of variability in viral activity. It is often possible to conduct robust analyses with monthly data, though it is sometimes more difficult to disentangle the effects of the virus from seasonal variation with monthly data. Quarterly data will not be sufficient for analysis in most settings, with the exception of extreme events like the emergence of a pandemic virus.</p>
-</section>
-<section id="additive-vs.-multiplicative-models" class="level3" data-number="6.4">
-<h3 data-number="6.4" class="anchored" data-anchor-id="additive-vs.-multiplicative-models"><span class="header-section-number">6.4</span> Additive vs.&nbsp;multiplicative models</h3>
-<p>In the example above, a linear regression is used to estimate the contribution of each component, and the components are added together to get the expected number of pneumonia cases. In many studies, a Poisson or a negative binomial regression is used instead. While these models are often most appropriate for modeling disease count data or incidence data, the components are added together on the scale of <span class="math inline">\(\log(\text{cases})\)</span> rather than on the original scale of the pneumonia cases. This can influence the interpretation of the regression coefficients and affects how the terms interact with each other. For instance if there is a strong trend in the pneumonia data, the effect of the trend is multiplied by the effect of RSV rather than added to it. Depending on the specific data, this could be appropriate, or it could introduce bias.</p>
-<p>A compromise solution is to use an <strong>additive Poisson</strong> or <strong>additive negative binomial</strong> model. With this approach, the terms are added together as they are in a linear regression, but the model takes into account that the outcome variable is a discrete count. Fitting this type of model is technically more complicated and requires specialized software (e.g., JAGS).</p>
-<section id="link-function-comparison-log-vs.-identity" class="level4" data-number="6.4.1">
-<h4 data-number="6.4.1" class="anchored" data-anchor-id="link-function-comparison-log-vs.-identity"><span class="header-section-number">6.4.1</span> Link function comparison: log vs.&nbsp;identity</h4>
-<p>The figures below illustrate how the choice of link function affects burden estimation. The analysis is run under two scenarios:</p>
+<p>To understand how these types of statistical analyses work, we will use a simulated time series of pneumonia deaths (<strong>Figure 3</strong>). This time series is comprised of:</p>
 <ol type="1">
-<li><strong>Additive (identity-link) DGP</strong> — the identity-link Poisson model is correctly specified; the log-link model is misspecified.</li>
-<li><strong>Multiplicative (log-link) DGP</strong> — the Poisson log-link model is correctly specified; the identity-link model is misspecified.</li>
+<li>The average number of cases, which shifts the time series up or down (Intercept)</li>
+<li>An underlying trend, with deaths decreasing over the years (e.g., a straight line decrease)</li>
+<li>Winter seasonal variation, which could be due to variations in social contact, meteorological factors, and other pathogens that vary seasonally in a consistent way when added together</li>
+<li>Increases related to influenza</li>
+<li>Unexplained short-term variation (“noise”). This variation cannot be described by the previously mentioned factors (i.e., trend, seasonality) and it assumes that when one week has unusually high activity, the next week is also likely to be unusually high. This is called ‘autocorrelation.’ This unexplained variation can occur if there are missing covariates in the model, or if other underlying assumptions about the data are incorrect</li>
 </ol>
-<p>In each case, the true burden from the data-generating process is shown as a dashed reference line.</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Additive DGP</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Multiplicative DGP</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fit_log <span class="ot">&lt;-</span> fit</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>fit_id <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  pneu <span class="sc">~</span> sin1 <span class="sc">+</span> cos1 <span class="sc">+</span> sin2 <span class="sc">+</span> cos2 <span class="sc">+</span> flu_s <span class="sc">+</span> rsv_s,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">data    =</span> df2,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">family  =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">"identity"</span>),</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">start   =</span> <span class="fu">coef</span>(fit_log) <span class="sc">|&gt;</span> (\(b) <span class="fu">c</span>(<span class="fu">exp</span>(b[<span class="dv">1</span>]), b[<span class="sc">-</span><span class="dv">1</span>]))()</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>pred_log_se <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_log, <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>pred_id_se  <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_id,  <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>df_compare <span class="ot">&lt;-</span> df2 <span class="sc">|&gt;</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, pneu) <span class="sc">|&gt;</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">log_fit =</span> <span class="fu">fitted</span>(fit_log),</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">log_lo  =</span> <span class="fu">exp</span>(pred_log_se<span class="sc">$</span>fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> pred_log_se<span class="sc">$</span>se.fit),</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">log_hi  =</span> <span class="fu">exp</span>(pred_log_se<span class="sc">$</span>fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> pred_log_se<span class="sc">$</span>se.fit),</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">id_fit  =</span> <span class="fu">fitted</span>(fit_id),</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">id_lo   =</span> <span class="fu">pmax</span>(<span class="dv">0</span>, pred_id_se<span class="sc">$</span>fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> pred_id_se<span class="sc">$</span>se.fit),</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">id_hi   =</span> pred_id_se<span class="sc">$</span>fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> pred_id_se<span class="sc">$</span>se.fit</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_compare, <span class="fu">aes</span>(<span class="at">x =</span> date)) <span class="sc">+</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> log_lo, <span class="at">ymax =</span> log_hi), <span class="at">fill =</span> <span class="st">"#2166ac"</span>, <span class="at">alpha =</span> <span class="fl">0.15</span>) <span class="sc">+</span></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> id_lo,  <span class="at">ymax =</span> id_hi),  <span class="at">fill =</span> <span class="st">"#d6604d"</span>, <span class="at">alpha =</span> <span class="fl">0.15</span>) <span class="sc">+</span></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> log_fit, <span class="at">color =</span> <span class="st">"Poisson (log)"</span>),      <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> id_fit,  <span class="at">color =</span> <span class="st">"Poisson (identity)"</span>), <span class="at">linewidth =</span> <span class="fl">0.7</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> pneu), <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="fl">0.6</span>, <span class="at">alpha =</span> <span class="fl">0.45</span>) <span class="sc">+</span></span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Poisson (log)"</span> <span class="ot">=</span> <span class="st">"#2166ac"</span>, <span class="st">"Poisson (identity)"</span> <span class="ot">=</span> <span class="st">"#d6604d"</span>)) <span class="sc">+</span></span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"1 year"</span>, <span class="at">date_labels =</span> <span class="st">"%Y"</span>) <span class="sc">+</span></span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">comma_format</span>()) <span class="sc">+</span></span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">y        =</span> <span class="st">"Weekly hospitalizations"</span>,</span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">color    =</span> <span class="cn">NULL</span>,</span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Additive DGP: identity-link model is correctly specified. Shaded bands = 95% CI."</span></span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ts</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/link-comparison-1.png" class="img-fluid figure-img" width="960"></p>
-</figure>
+<p>When these components are added together, we get the full time series. The goal for statistical models used for burden estimation is to work backwards. We take the pneumonia time series and estimate the contribution of each of these components using a mathematical formula; typically within a regression framework. This analysis can provide an estimate for how much pneumonia we would expect if there had not been an increase in influenza activity, and from this we can estimate how much of the total burden of pneumonia is due to influenza.</p>
+<p>In the regression, the outcome variable (<span class="math inline">\(Y_t\)</span>) is the number of pneumonia cases or deaths in each week. Covariates (<span class="math inline">\(X_t\)</span>) include a variable describing influenza activity, a time trend to capture long-term increases or decreases, a variable that captures season-to-season variation, and the unexplained short-term variation (“noise”). This can be written generically as:</p>
+<div class="equation-block">
+<p><span class="math display">\[
+\text{Expected pneumonia cases at week } t: \quad E(Y_t) = \beta_0 + \beta_1 \cdot \text{Trend}_t + \beta_2 \cdot \text{Seasonality}_t + \beta_3 \cdot \text{Influenza}_t + \text{Noise}_t
+\]</span></p>
 </div>
-</div>
-</div>
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>b_id <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit_id)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>id_comp_rsv <span class="ot">&lt;-</span> <span class="fu">pmax</span>(<span class="dv">0</span>, b_id[<span class="st">"rsv_s"</span>] <span class="sc">*</span> df2<span class="sc">$</span>rsv_s)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>id_comp_flu <span class="ot">&lt;-</span> <span class="fu">pmax</span>(<span class="dv">0</span>, b_id[<span class="st">"flu_s"</span>] <span class="sc">*</span> df2<span class="sc">$</span>flu_s)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>true_burden <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Pathogen   =</span> <span class="fu">c</span>(<span class="st">"RSV"</span>, <span class="st">"Influenza"</span>),</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">TrueBurden =</span> <span class="fu">c</span>(<span class="fu">sum</span>(b3_rsv <span class="sc">*</span> df2<span class="sc">$</span>rsv_s), <span class="fu">sum</span>(b4_flu <span class="sc">*</span> df2<span class="sc">$</span>flu_s))</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>burden <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">Link      =</span> <span class="st">"Poisson (log)"</span>,</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pathogen  =</span> <span class="fu">c</span>(<span class="st">"RSV"</span>, <span class="st">"Influenza"</span>),</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">Burden    =</span> <span class="fu">c</span>(<span class="fu">sum</span>(df2<span class="sc">$</span>comp_rsv), <span class="fu">sum</span>(df2<span class="sc">$</span>comp_flu)),</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_fit =</span> <span class="fu">sum</span>(df2<span class="sc">$</span>fitted)</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">Link      =</span> <span class="st">"Poisson (identity)"</span>,</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pathogen  =</span> <span class="fu">c</span>(<span class="st">"RSV"</span>, <span class="st">"Influenza"</span>),</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">Burden    =</span> <span class="fu">c</span>(<span class="fu">sum</span>(id_comp_rsv), <span class="fu">sum</span>(id_comp_flu)),</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_fit =</span> <span class="fu">sum</span>(<span class="fu">fitted</span>(fit_id))</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Pct =</span> Burden <span class="sc">/</span> Total_fit <span class="sc">*</span> <span class="dv">100</span>)</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  burden <span class="sc">|&gt;</span> <span class="fu">select</span>(Link, Pathogen, Burden, Pct),</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits    =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption   =</span> <span class="st">"Additive DGP — 10-year attributable burden by link function"</span>,</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Link"</span>, <span class="st">"Pathogen"</span>, <span class="st">"Attributable hospitalizations"</span>, <span class="st">"% of total fitted"</span>)</span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Additive DGP — 10-year attributable burden by link function</caption>
-<colgroup>
-<col style="width: 24%">
-<col style="width: 12%">
-<col style="width: 38%">
-<col style="width: 23%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Link</th>
-<th style="text-align: left;">Pathogen</th>
-<th style="text-align: right;">Attributable hospitalizations</th>
-<th style="text-align: right;">% of total fitted</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Poisson (log)</td>
-<td style="text-align: left;">RSV</td>
-<td style="text-align: right;">2566</td>
-<td style="text-align: right;">2.3</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Poisson (log)</td>
-<td style="text-align: left;">Influenza</td>
-<td style="text-align: right;">3915</td>
-<td style="text-align: right;">3.5</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Poisson (identity)</td>
-<td style="text-align: left;">RSV</td>
-<td style="text-align: right;">2701</td>
-<td style="text-align: right;">2.4</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Poisson (identity)</td>
-<td style="text-align: left;">Influenza</td>
-<td style="text-align: right;">4278</td>
-<td style="text-align: right;">3.8</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>burden_plot <span class="ot">&lt;-</span> burden <span class="sc">|&gt;</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bar_label =</span> <span class="fu">sprintf</span>(<span class="st">"%s  (%.1f%%)"</span>, <span class="fu">comma</span>(<span class="fu">round</span>(Burden)), Pct))</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(burden_plot, <span class="fu">aes</span>(<span class="at">x =</span> Pathogen, <span class="at">y =</span> Burden, <span class="at">fill =</span> Link)) <span class="sc">+</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.6</span>), <span class="at">width =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> bar_label),</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.6</span>),</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.4</span>, <span class="at">size =</span> <span class="fl">3.2</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">color =</span> <span class="st">"gray20"</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_crossbar</span>(</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">data        =</span> true_burden,</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> Pathogen, <span class="at">y =</span> TrueBurden, <span class="at">ymin =</span> TrueBurden, <span class="at">ymax =</span> TrueBurden),</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.65</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">fatten =</span> <span class="dv">0</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Poisson (log)"</span> <span class="ot">=</span> <span class="st">"#2166ac"</span>, <span class="st">"Poisson (identity)"</span> <span class="ot">=</span> <span class="st">"#d6604d"</span>)) <span class="sc">+</span></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">comma_format</span>(), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.18</span>))) <span class="sc">+</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Attributable hospitalizations (10-year total)"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>,</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Dashed line = true value from data-generating process"</span></span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ts</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="index_files/figure-html/burden-comparison-plot-1.png" class="img-fluid figure-img" width="960"></p>
-<figcaption>Additive DGP: attributable burden by link function. Dashed line = true value from the data-generating process. The correctly-specified identity-link model should recover the true burden more accurately.</figcaption>
+<p><img src="figures/fig3-decomposition.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
 </figure>
 </div>
-</div>
-</div>
-</div>
-<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fit_log_m <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  pneu <span class="sc">~</span> sin1 <span class="sc">+</span> cos1 <span class="sc">+</span> sin2 <span class="sc">+</span> cos2 <span class="sc">+</span> flu_s <span class="sc">+</span> rsv_s,</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data   =</span> df2_m,</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">"log"</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>fit_id_m <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  pneu <span class="sc">~</span> sin1 <span class="sc">+</span> cos1 <span class="sc">+</span> sin2 <span class="sc">+</span> cos2 <span class="sc">+</span> flu_s <span class="sc">+</span> rsv_s,</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">data   =</span> df2_m,</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">poisson</span>(<span class="at">link =</span> <span class="st">"identity"</span>),</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">start  =</span> <span class="fu">coef</span>(fit_log_m) <span class="sc">|&gt;</span> (\(b) <span class="fu">c</span>(<span class="fu">exp</span>(b[<span class="dv">1</span>]), b[<span class="sc">-</span><span class="dv">1</span>]))()</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>gof_m <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">Link     =</span> <span class="fu">c</span>(<span class="st">"log"</span>, <span class="st">"identity"</span>),</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">AIC      =</span> <span class="fu">c</span>(<span class="fu">AIC</span>(fit_log_m), <span class="fu">AIC</span>(fit_id_m)),</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">Deviance =</span> <span class="fu">c</span>(<span class="fu">deviance</span>(fit_log_m), <span class="fu">deviance</span>(fit_id_m)),</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">Null_Dev =</span> <span class="fu">c</span>(fit_log_m<span class="sc">$</span>null.deviance, fit_id_m<span class="sc">$</span>null.deviance)</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pseudo_R2 =</span> <span class="dv">1</span> <span class="sc">-</span> Deviance <span class="sc">/</span> Null_Dev,</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">RMSE      =</span> <span class="fu">c</span>(</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sqrt</span>(<span class="fu">mean</span>((df2_m<span class="sc">$</span>pneu <span class="sc">-</span> <span class="fu">fitted</span>(fit_log_m))<span class="sc">^</span><span class="dv">2</span>)),</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">sqrt</span>(<span class="fu">mean</span>((df2_m<span class="sc">$</span>pneu <span class="sc">-</span> <span class="fu">fitted</span>(fit_id_m))<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Link, AIC, Deviance, Pseudo_R2, RMSE)</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  gof_m,</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">digits    =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">2</span>),</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">caption   =</span> <span class="st">"Multiplicative DGP — Poisson log vs identity link"</span>,</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Link"</span>, <span class="st">"AIC"</span>, <span class="st">"Residual Deviance"</span>, <span class="st">"Pseudo R²"</span>, <span class="st">"RMSE"</span>)</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Multiplicative DGP — Poisson log vs identity link</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Link</th>
-<th style="text-align: right;">AIC</th>
-<th style="text-align: right;">Residual Deviance</th>
-<th style="text-align: right;">Pseudo R²</th>
-<th style="text-align: right;">RMSE</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">log</td>
-<td style="text-align: right;">24144065</td>
-<td style="text-align: right;">24139159</td>
-<td style="text-align: right;">0.9869</td>
-<td style="text-align: right;">489326.1</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">identity</td>
-<td style="text-align: right;">11680412819</td>
-<td style="text-align: right;">11680407912</td>
-<td style="text-align: right;">-5.3340</td>
-<td style="text-align: right;">3082156.3</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pred_log_m <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_log_m, <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>pred_id_m  <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_id_m,  <span class="at">se.fit =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>df_compare_m <span class="ot">&lt;-</span> df2_m <span class="sc">|&gt;</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(date, pneu) <span class="sc">|&gt;</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">log_fit =</span> <span class="fu">fitted</span>(fit_log_m),</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">log_lo  =</span> <span class="fu">exp</span>(pred_log_m<span class="sc">$</span>fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> pred_log_m<span class="sc">$</span>se.fit),</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">log_hi  =</span> <span class="fu">exp</span>(pred_log_m<span class="sc">$</span>fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> pred_log_m<span class="sc">$</span>se.fit),</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">id_fit  =</span> <span class="fu">fitted</span>(fit_id_m),</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">id_lo   =</span> <span class="fu">pmax</span>(<span class="dv">0</span>, pred_id_m<span class="sc">$</span>fit <span class="sc">-</span> <span class="fl">1.96</span> <span class="sc">*</span> pred_id_m<span class="sc">$</span>se.fit),</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">id_hi   =</span> pred_id_m<span class="sc">$</span>fit <span class="sc">+</span> <span class="fl">1.96</span> <span class="sc">*</span> pred_id_m<span class="sc">$</span>se.fit</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_compare_m, <span class="fu">aes</span>(<span class="at">x =</span> date)) <span class="sc">+</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> log_lo, <span class="at">ymax =</span> log_hi), <span class="at">fill =</span> <span class="st">"#2166ac"</span>, <span class="at">alpha =</span> <span class="fl">0.15</span>) <span class="sc">+</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> id_lo,  <span class="at">ymax =</span> id_hi),  <span class="at">fill =</span> <span class="st">"#d6604d"</span>, <span class="at">alpha =</span> <span class="fl">0.15</span>) <span class="sc">+</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> log_fit, <span class="at">color =</span> <span class="st">"Poisson (log)"</span>),      <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> id_fit,  <span class="at">color =</span> <span class="st">"Poisson (identity)"</span>), <span class="at">linewidth =</span> <span class="fl">0.7</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> pneu), <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="fl">0.6</span>, <span class="at">alpha =</span> <span class="fl">0.45</span>) <span class="sc">+</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Poisson (log)"</span> <span class="ot">=</span> <span class="st">"#2166ac"</span>, <span class="st">"Poisson (identity)"</span> <span class="ot">=</span> <span class="st">"#d6604d"</span>)) <span class="sc">+</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"1 year"</span>, <span class="at">date_labels =</span> <span class="st">"%Y"</span>) <span class="sc">+</span></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">comma_format</span>()) <span class="sc">+</span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">y        =</span> <span class="st">"Weekly hospitalizations"</span>,</span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">color    =</span> <span class="cn">NULL</span>,</span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Multiplicative DGP: log-link model is correctly specified. Shaded bands = 95% CI."</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ts</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="index_files/figure-html/mult-fit-plot-1.png" class="img-fluid figure-img" width="960"></p>
-<figcaption>Multiplicative DGP: observed weekly counts vs fitted values. Under a multiplicative DGP the log-link model (blue) is correctly specified.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>b_log_m       <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit_log_m)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>lp_base_m     <span class="ot">&lt;-</span> b_log_m[<span class="st">"(Intercept)"</span>]</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>lp_seasonal_m <span class="ot">&lt;-</span> b_log_m[<span class="st">"sin1"</span>]<span class="sc">*</span>df2_m<span class="sc">$</span>sin1 <span class="sc">+</span> b_log_m[<span class="st">"cos1"</span>]<span class="sc">*</span>df2_m<span class="sc">$</span>cos1 <span class="sc">+</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                 b_log_m[<span class="st">"sin2"</span>]<span class="sc">*</span>df2_m<span class="sc">$</span>sin2 <span class="sc">+</span> b_log_m[<span class="st">"cos2"</span>]<span class="sc">*</span>df2_m<span class="sc">$</span>cos2</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>mu_none_log_m <span class="ot">&lt;-</span> <span class="fu">exp</span>(lp_base_m <span class="sc">+</span> lp_seasonal_m)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>mu_rsv_log_m  <span class="ot">&lt;-</span> <span class="fu">exp</span>(lp_base_m <span class="sc">+</span> lp_seasonal_m <span class="sc">+</span> b_log_m[<span class="st">"rsv_s"</span>] <span class="sc">*</span> df2_m<span class="sc">$</span>rsv_s)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>mu_full_log_m <span class="ot">&lt;-</span> <span class="fu">fitted</span>(fit_log_m)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>log_m_comp_rsv <span class="ot">&lt;-</span> <span class="fu">pmax</span>(<span class="dv">0</span>, mu_rsv_log_m  <span class="sc">-</span> mu_none_log_m)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>log_m_comp_flu <span class="ot">&lt;-</span> <span class="fu">pmax</span>(<span class="dv">0</span>, mu_full_log_m <span class="sc">-</span> mu_rsv_log_m)</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>b_id_m        <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit_id_m)</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>id_m_comp_rsv <span class="ot">&lt;-</span> <span class="fu">pmax</span>(<span class="dv">0</span>, b_id_m[<span class="st">"rsv_s"</span>] <span class="sc">*</span> df2_m<span class="sc">$</span>rsv_s)</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>id_m_comp_flu <span class="ot">&lt;-</span> <span class="fu">pmax</span>(<span class="dv">0</span>, b_id_m[<span class="st">"flu_s"</span>] <span class="sc">*</span> df2_m<span class="sc">$</span>flu_s)</span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>lp_seas_true_m <span class="ot">&lt;-</span> <span class="dv">12</span><span class="sc">*</span>df2_m<span class="sc">$</span>sin1 <span class="sc">-</span> <span class="dv">8</span><span class="sc">*</span>df2_m<span class="sc">$</span>cos1 <span class="sc">+</span> <span class="dv">4</span><span class="sc">*</span>df2_m<span class="sc">$</span>sin2 <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>df2_m<span class="sc">$</span>cos2</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>mu_none_true_m <span class="ot">&lt;-</span> <span class="fu">exp</span>(int2_m <span class="sc">+</span> lp_seas_true_m)</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>mu_rsv_true_m  <span class="ot">&lt;-</span> <span class="fu">exp</span>(int2_m <span class="sc">+</span> lp_seas_true_m <span class="sc">+</span> b3_rsv_m <span class="sc">*</span> df2_m<span class="sc">$</span>rsv_s)</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>mu_full_true_m <span class="ot">&lt;-</span> <span class="fu">exp</span>(int2_m <span class="sc">+</span> lp_seas_true_m <span class="sc">+</span> b3_rsv_m <span class="sc">*</span> df2_m<span class="sc">$</span>rsv_s <span class="sc">+</span> b4_flu_m <span class="sc">*</span> df2_m<span class="sc">$</span>flu_s)</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>true_burden_m <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">Pathogen   =</span> <span class="fu">c</span>(<span class="st">"RSV"</span>, <span class="st">"Influenza"</span>),</span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">TrueBurden =</span> <span class="fu">c</span>(<span class="fu">sum</span>(mu_rsv_true_m <span class="sc">-</span> mu_none_true_m), <span class="fu">sum</span>(mu_full_true_m <span class="sc">-</span> mu_rsv_true_m))</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>burden_m <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">Link      =</span> <span class="st">"Poisson (log)"</span>,</span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pathogen  =</span> <span class="fu">c</span>(<span class="st">"RSV"</span>, <span class="st">"Influenza"</span>),</span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">Burden    =</span> <span class="fu">c</span>(<span class="fu">sum</span>(log_m_comp_rsv), <span class="fu">sum</span>(log_m_comp_flu)),</span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_fit =</span> <span class="fu">sum</span>(<span class="fu">fitted</span>(fit_log_m))</span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">Link      =</span> <span class="st">"Poisson (identity)"</span>,</span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pathogen  =</span> <span class="fu">c</span>(<span class="st">"RSV"</span>, <span class="st">"Influenza"</span>),</span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">Burden    =</span> <span class="fu">c</span>(<span class="fu">sum</span>(id_m_comp_rsv), <span class="fu">sum</span>(id_m_comp_flu)),</span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_fit =</span> <span class="fu">sum</span>(<span class="fu">fitted</span>(fit_id_m))</span>
-<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">Pct       =</span> Burden <span class="sc">/</span> Total_fit <span class="sc">*</span> <span class="dv">100</span>,</span>
-<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">bar_label =</span> <span class="fu">sprintf</span>(<span class="st">"%s  (%.1f%%)"</span>, <span class="fu">comma</span>(<span class="fu">round</span>(Burden)), Pct)</span>
-<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(burden_m, <span class="fu">aes</span>(<span class="at">x =</span> Pathogen, <span class="at">y =</span> Burden, <span class="at">fill =</span> Link)) <span class="sc">+</span></span>
-<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.6</span>), <span class="at">width =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
-<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">label =</span> bar_label),</span>
-<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.6</span>),</span>
-<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.4</span>, <span class="at">size =</span> <span class="fl">3.2</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">color =</span> <span class="st">"gray20"</span></span>
-<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_crossbar</span>(</span>
-<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>    <span class="at">data        =</span> true_burden_m,</span>
-<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> Pathogen, <span class="at">y =</span> TrueBurden, <span class="at">ymin =</span> TrueBurden, <span class="at">ymax =</span> TrueBurden),</span>
-<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>    <span class="at">width =</span> <span class="fl">0.65</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">fatten =</span> <span class="dv">0</span></span>
-<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Poisson (log)"</span> <span class="ot">=</span> <span class="st">"#2166ac"</span>, <span class="st">"Poisson (identity)"</span> <span class="ot">=</span> <span class="st">"#d6604d"</span>)) <span class="sc">+</span></span>
-<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">comma_format</span>(), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.18</span>))) <span class="sc">+</span></span>
-<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Attributable hospitalizations (10-year total)"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>,</span>
-<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Dashed line = true value from data-generating process"</span></span>
-<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ts</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="index_files/figure-html/mult-burden-plot-1.png" class="img-fluid figure-img" width="960"></p>
-<figcaption>Multiplicative DGP: attributable burden by link function. Under a multiplicative DGP the log-link model should recover the true burden more accurately.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+<p>The regression model estimates the intercept, which gives the average number of cases during the study period, and the relative contributions of trend, seasonality, and influenza (<span class="math inline">\(\beta_0, \beta_1, \beta_2, \beta_3\)</span>, respectively) (<strong>Figure 3A</strong>). The <span class="math inline">\(\beta_3\)</span> parameter acts as a multiplier that connects the influenza activity to the pneumonia time series and is the key part of the model for understanding what influenza may look like in the absence of flu activity. By including both seasonality (<span class="math inline">\(\beta_2\)</span>) and the influenza variable in the model, we can more accurately estimate how much of the variability in pneumonia rates is due to influenza and how much is due to typical seasonal variation. If the seasonal term is omitted from the model, then the model would incorrectly estimate that much of the seasonal variation is due to influenza, and <span class="math inline">\(\beta_3\)</span> would be poorly estimated. A similar effect would be seen when the trend is not included in the model, particularly if the influenza variable had a similar long-term trend.</p>
 </section>
+<section id="using-the-model-to-calculate-attributable-burden" class="level2">
+<h2 class="anchored" data-anchor-id="using-the-model-to-calculate-attributable-burden">Using the model to calculate attributable burden</h2>
+<p>Once we have fitted the regression, we have estimates (and measures of uncertainty) for <span class="math inline">\(\beta_0\)</span>–<span class="math inline">\(\beta_3\)</span> that can be used to estimate the percent of pneumonia burden that is caused by influenza. We do so by setting the influenza activity at each week to 0 in the equation below and therefore, predict how many pneumonia cases we would expect in the absence of any influenza activity:</p>
+<div class="equation-block">
+<p><span class="math display">\[
+\text{Expected pneumonia cases at week } t \text{ without influenza}: \quad E(Y_{0t}) = \beta_0 + \beta_1 \cdot \text{Trend}_t + \beta_2 \cdot \text{Seasonality}_t + \beta_3 \cdot 0 + \text{Noise}_t
+\]</span></p>
+</div>
+<p>We can then summarize the difference between the fitted value and the predicted value without influenza, with the area between the plotted values representing the expected contribution from influenza (<strong>Figure 3B</strong>). We can also calculate the percent of the total predicted value that is attributed to influenza, or the <strong>attributable percent</strong>:</p>
+<p><span class="math display">\[
+\text{Attributable percent} = \frac{E(Y_{1t}) - E(Y_{0t})}{E(Y_{1t})} \times 100\%
+\]</span></p>
+<p>Likewise we could calculate the <strong>attributable incidence</strong> as:</p>
+<p><span class="math display">\[
+\text{Attributable incidence} = \frac{E(Y_{1t}) - E(Y_{0t})}{\text{Population}}
+\]</span></p>
+<p>The attributable percent and attributable incidence can be calculated at each time point or can be aggregated over multiple time points by summing <span class="math inline">\(E(Y_{1t})\)</span> and <span class="math inline">\(E(Y_{0t})\)</span> before calculating the quantities. Using these types of calculations, it is possible to make statements like “based on the model, 10% of pneumonia cases were attributed to influenza”. Importantly, because a statistical model was used for estimation, measures of uncertainty for these quantities, such as confidence intervals, can also be derived and used in interpretation. More details about these approaches and considerations for implementation can be found in the <strong>Technical Appendix</strong>.</p>
 </section>
-<section id="reporting-results" class="level3" data-number="6.5">
-<h3 data-number="6.5" class="anchored" data-anchor-id="reporting-results"><span class="header-section-number">6.5</span> Reporting results</h3>
-<p>The goal for attribution studies is typically to estimate the <strong>contribution</strong> of a virus to the burden of pneumonia, not to test whether there is an association between the virus and pneumonia. As a result, results should cite estimates of attributable percent and attributable incidence with measures of uncertainty (e.g., 95% confidence intervals) but should not rely on P-values for making a determination of an association.</p>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>Time series models provide information that is complementary to intensive clinical methods for estimating the impact of specific viruses on the burden of pneumonia or other non-specific outcomes. Because many clinical cases are not tested for specific microbes, this type of attribution analysis can provide a more complete picture of the burden of disease caused by specific bacteria or viruses. While the highest standard of evidence comes from clinical studies that involve intensive testing, statistical methods like time series analysis often provide similar estimates to those derived from high-quality clinical data when they are available for comparison. Statistical approaches provide a scalable solution that can be used in many different locations.</p>
 </section>
-<section id="autocorrelation" class="level3" data-number="6.6">
-<h3 data-number="6.6" class="anchored" data-anchor-id="autocorrelation"><span class="header-section-number">6.6</span> Autocorrelation</h3>
-<p>Many attribution models ignore residual autocorrelation. Often after accounting for seasonality, viral activity, and trends, there is little residual autocorrelation in the data. It is sometimes desirable to explicitly capture autocorrelation in the model to ensure the estimates appropriately capture the uncertainty in the data. However, this should be approached cautiously, as the inclusion of autoregressive terms can sometimes lead to bias in the estimates of viral activity.</p>
-<hr>
+<section id="funding-and-disclosures" class="level2">
+<h2 class="anchored" data-anchor-id="funding-and-disclosures">Funding and Disclosures</h2>
+<p>This work was funded by contracts from Pfizer to DMW and JLW and was completed independent of their duties at Yale University. The funders were involved in developing the concept for the paper and providing feedback on the drafts. The authors were fully responsible for writing, analysis, and editorial decisions.</p>
+<p>Outside of this work, DMW has received consulting fees from Pfizer, Merck, GSK, and Vaxcyte and has been principal investigator on research grants from Pfizer, Merck, and GSK to Yale University, while JLW has received consulting fees from Pfizer.</p>
 </section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ol type="1">
+<li><a href="http://paperpile.com/b/2koYyH/IDYV">Branche AR, Saiman L, Walsh EE, Falsey AR, Sieling WD, Greendyke W, et al.&nbsp;Incidence of Respiratory Syncytial Virus Infection Among Hospitalized Adults, 2017-2020. Clin Infect Dis. 2022;74: 1004–1011.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/0GNL">Ebruke BE, Deloria Knoll M, Haddix M, Zaman SMA, Prosperi C, Feikin DR, et al.&nbsp;The Etiology of Pneumonia From Analysis of Lung Aspirate and Pleural Fluid Samples: Findings From the Pneumonia Etiology Research for Child Health (PERCH) Study. Clin Infect Dis. 2021;73: e3788–e3796.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/b3Kf">Scheltema NM, Gentile A, Lucion F, Nokes DJ, Munywoki PK, Madhi SA, et al.&nbsp;Global respiratory syncytial virus-associated mortality in young children (RSV GOLD): a retrospective case series. Lancet Glob Health. 2017;5: e984–e991.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/19PC">Mahtab S, Madhi SA, Baillie VL, Els T, Thwala BN, Onyango D, et al.&nbsp;Causes of death identified in neonates enrolled through Child Health and Mortality Prevention Surveillance (CHAMPS), December 2016 - December 2021. PLOS Glob Public Health. 2023;3: e0001612.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/pUPo">Onwuchekwa C, Moreo LM, Menon S, Machado B, Curcio D, Kalina W, et al.&nbsp;Underascertainment of Respiratory Syncytial Virus Infection in Adults Due to Diagnostic Testing Limitations: A Systematic Literature Review and Meta-analysis. J Infect Dis. 2023;228: 173–184.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/Pojs">Begier E, Aliabadi N, Ramirez JA, McGeer A, Liu Q, Carrico R, et al.&nbsp;Detection by Nasopharyngeal Swabs Alone Underestimates Respiratory Syncytial Virus-Related Hospitalization Incidence in Adults: The Multispecimen Study’s Final Analysis. J Infect Dis. 2025;232: e126–e136.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/mchc">Falsey AR, Hennessey PA, Formica MA, Cox C, Walsh EE. Respiratory syncytial virus infection in elderly and high-risk adults. N Engl J Med. 2005;352: 1749–1759.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/0hFB">Rozenbaum MH, Judy J, Tran D, Yacisin K, Kurosky SK, Begier E. Low Levels of RSV Testing Among Adults Hospitalized for Lower Respiratory Tract Infection in the United States. Infect Dis Ther. 2023;12: 677–685.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/EAxe">Cai W, Tolksdorf K, Hirve S, Schuler E, Zhang W, Haas W, et al.&nbsp;Evaluation of using ICD-10 code data for respiratory syncytial virus surveillance. Influenza Other Respi Viruses. 2020;14: 630–637.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/enhK">Egeskov-Cavling AM, Johannesen CK, Lindegaard B, Fischer TK. Underreporting and Misclassification of Respiratory Syncytial Virus-Coded Hospitalization Among Adults in Denmark Between 2015-2016 and 2017-2018. The Journal of infectious diseases. 2024;229. doi:10.1093/infdis/jiad415</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/Vbgj">Zheng Z, Warren JL, Shapiro ED, Pitzer VE, Weinberger DM. Estimated incidence of respiratory hospitalizations attributable to RSV infections across age and socioeconomic groups. Pneumonia (Nathan). 2022;14: 6.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/PlBN">Casas M, Liang C, Molden T, Bruyndonckx R, Esnaola M, Basu S, et al.&nbsp;Estimated Incidence of Hospitalisations and Deaths Attributable to Respiratory Syncytial Virus Infections in Adults in Norway between 2010 and 2019: A Time-Series Modelling Study. J Epidemiol Glob Health. 2025;15: 107.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/PMxG">Bruyndonckx R, Polkowska-Kramek A, Liang C, Kosunen M, Hätinen O-P, Esnaola M, et al.&nbsp;Estimated Incidence of All-Cause Respiratory Hospitalizations and Deaths Attributable to Respiratory Syncytial Virus Infections in Adults in Finland between 2011 and 2019: A Retrospective Database Study. J Epidemiol Glob Health. 2026;16: 7.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/UTol">Liang C, Polkowska-Kramek A, Lade C, Bayer LJ, Bruyndonckx R, Huebbe B, et al.&nbsp;Estimated Incidence Rate of Specific Types of Cardiovascular and Respiratory Hospitalizations Attributable to Respiratory Syncytial Virus Among Adults in Germany Between 2015 and 2019. Influenza Other Respir Viruses. 2025;19: e70097.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/wP7J">Haeberer M, Bruyndonckx R, Polkowska-Kramek A, Torres A, Liang C, Nuttens C, et al.&nbsp;Estimated Respiratory Syncytial Virus-Related Hospitalizations and Deaths Among Children and Adults in Spain, 2016-2019. Infect Dis Ther. 2024;13: 463–480.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/5t1k">O’Brien KL, Baggett HC, Brooks WA, Feikin DR, Hammitt LL, Higdon MM, et al.&nbsp;Causes of severe pneumonia requiring hospital admission in children without HIV infection from Africa and Asia: the PERCH multi-country case-control study. Lancet. 2019;394: 757–779.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/YQmD">Antillón M, Warren JL, Crawford FW, Weinberger DM, Kürüm E, Pak GD, et al.&nbsp;The burden of typhoid fever in low-and middle-income countries: A meta-regression approach. PLoS Negl Trop Dis. 2017;11: e0005376.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/jZ05">Phillips MT, Meiring JE, Voysey M, Warren JL, Baker S, Basnyat B, et al.&nbsp;A Bayesian approach for estimating typhoid fever incidence from large-scale facility-based passive surveillance data. Stat Med. 2021;40: 5853–5870.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/6Kx4">GBD 2023 Causes of Death Collaborators. Global burden of 292 causes of death in 204 countries and territories and 660 subnational locations, 1990-2023: a systematic analysis for the Global Burden of Disease Study 2023. Lancet. 2025;406: 1811–1872.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/YWG3">Zhang T, Reeves RM, Ma S, Miao Y, Sun S, Orrico-Sánchez A, et al.&nbsp;Estimating the respiratory syncytial virus-associated hospitalisation burden in older adults in European countries: a systematic analysis. BMC Med. 2025;23: 453.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/irNY">Dushoff J, Plotkin JB, Viboud C, Earn DJD, Simonsen L. Mortality due to influenza in the United States–an annualized regression approach using multiple-cause mortality data. Am J Epidemiol. 2006;163: 181–187.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/FXIG">Thompson WW, Shay DK, Weintraub E, Brammer L, Cox N, Anderson LJ, et al.&nbsp;Mortality associated with influenza and respiratory syncytial virus in the United States. JAMA. 2003;289: 179–186.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/S6sB">Zhou H, Thompson WW, Viboud CG, Ringholz CM, Cheng P-Y, Steiner C, et al.&nbsp;Hospitalizations Associated With Influenza and Respiratory Syncytial Virus in the United States, 1993–2008. Clin Infect Dis. 2012;54: 1427–1436.</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/w4vw">Xu H, Pitzer VE, Warren JL, Shapiro ED, Perniciaro S, Weinberger DM. Estimating the burden of RSV- and influenza-associated ED visits, hospitalizations, ICU admissions, and deaths across age and socioeconomic groups in New York State, 2005-2019. BMC Infect Dis. 2026;26. doi:10.1186/s12879-026-12574-6</a></li>
+<li><a href="http://paperpile.com/b/2koYyH/Z2Gf">McLaughlin JM, Khan F, Begier E, Swerdlow DL, Jodar L, Falsey AR. Rates of Medically Attended RSV Among US Adults: A Systematic Review and Meta-analysis. Open Forum Infect Dis. 2022;9: ofac300.</a></li>
+</ol>
 </section>
-<section id="conclusions" class="level2" data-number="7">
-<h2 data-number="7" class="anchored" data-anchor-id="conclusions"><span class="header-section-number">7</span> Conclusions</h2>
-<p>Time series models provide a complementary method for estimating the impact of specific viruses on the burden of pneumonia or other non-specific outcomes. Because many clinical cases are not tested for specific pathogens, this type of attribution analysis can provide a more complete picture of the burden of disease caused by specific pathogens. While the highest standard of evidence comes from clinical studies that involve intensive testing, statistical approaches provide a scalable solution that can be used in many different locations. The statistical methods often provide similar estimates to the ground truth clinical data when it is available for comparison.</p>
+<section id="technical-appendix" class="level2">
+<h2 class="anchored" data-anchor-id="technical-appendix">Technical Appendix</h2>
+<section id="distinguishing-the-contribution-of-a-virus-from-seasonal-variation" class="level3">
+<h3 class="anchored" data-anchor-id="distinguishing-the-contribution-of-a-virus-from-seasonal-variation">Distinguishing the contribution of a virus from seasonal variation</h3>
+<p>With influenza, the intensity and timing of the epidemic varies considerably year-to-year. Therefore, it is typically straightforward to disentangle the effect of influenza from seasonal variations that are not caused by influenza. Some other pathogens show less year-to-year variability in epidemic timing or intensity, making it more challenging to accurately estimate the effect of the virus. This can sometimes be seen during the model fitting process as having either seasonal factors or viral terms that are unstable or have high levels of uncertainty. In these situations, it can sometimes be helpful to simultaneously model data from multiple regions or age groups that might have different seasonal patterns. It can also be helpful to explore lags between the virus and the pneumonia time series and to explore different ways to capture the consistent seasonal variations (e.g., harmonics vs.&nbsp;penalized splines).</p>
+</section>
+<section id="dealing-with-changes-in-diagnostics" class="level3">
+<h3 class="anchored" data-anchor-id="dealing-with-changes-in-diagnostics">Dealing with changes in diagnostics</h3>
+<p>Attribution models typically assume that the association between the viral indicator and pneumonia is stable over time. However, for many viruses, the use of laboratory diagnostics changed dramatically in the period after the COVID-19 pandemic. Ignoring this change will likely lead to under-estimation of the contribution of the virus. If data on viral testing volumes over time are available, this can be used to detrend the data. Another possible solution is to take a 12 month moving average of viral testing volumes and use this to adjust the number of positive tests. This avoids inappropriately removing some of the seasonal variation while still adjusting for the long-term trends. If testing data are not available, other model-based approaches to detrending the data could be considered.</p>
+</section>
+<section id="time-resolution" class="level3">
+<h3 class="anchored" data-anchor-id="time-resolution">Time resolution</h3>
+<p>Ideally, these types of analyses should be conducted using weekly data. This allows the model to leverage maximum levels of variability in viral activity. It is often possible, however, to conduct robust analyses with monthly data, though it is sometimes more difficult to disentangle the effects of the virus from seasonal variation with monthly data (see previous section). Quarterly data will not be sufficient for analysis in most settings, with the exception of extreme events like the emergence of a pandemic virus.</p>
+</section>
+<section id="additive-vs-multiplicative-models" class="level3">
+<h3 class="anchored" data-anchor-id="additive-vs-multiplicative-models">Additive vs multiplicative models</h3>
+<p>In the example from the main text, a negative binomial regression model with identity link function was used to estimate the contribution of each component, such that the components were added together to obtain the expected number of pneumonia cases. In many studies, a log-link function is used instead such that the components are added together on the scale of log(cases) rather than on the original scale of the pneumonia cases. While this specification naturally accommodates the requirement that expected counts are larger than zero, it changes the interpretation of the regression coefficients compared to the identity link and can impact estimation of the attributable percent and incidence. Careful consideration about the appropriate analysis scale prior to analysis is important for selecting the best option, though model comparison tools can sometimes be useful as a data-driven technique for making this choice. Fitting count-based models with the identity link is technically more complicated and can require specialized software (e.g., JAGS for Bayesian analyses).</p>
+</section>
+<section id="reporting-results" class="level3">
+<h3 class="anchored" data-anchor-id="reporting-results">Reporting results</h3>
+<p>The goal for attribution studies is typically to <em>estimate</em> the contribution of a virus to the burden of pneumonia, not to <em>test</em> whether there is an association between the virus and pneumonia. As a result, results should cite estimates of attributable percent and attributable incidence with measure of uncertainty (e.g., a 95% confidence intervals) instead of reporting inference for the associations between the virus and pneumonia time series.</p>
+</section>
+<section id="autocorrelation" class="level3">
+<h3 class="anchored" data-anchor-id="autocorrelation">Autocorrelation</h3>
+<p>Many attribution models ignore residual autocorrelation. Often after accounting for seasonality, viral activity, and trends, there is little meaningful residual autocorrelation in the data. However, when significant autocorrelation is present, it is important to explicitly model it to ensure accurate uncertainty measures for the estimates of interest. However, results from such an analysis should be carefully reviewed as the inclusion of autoregressive random effects can sometimes impact estimation and inference for other variables in the model.</p>
+</section>
+<section id="how-much-does-model-structure-matter" class="level3">
+<h3 class="anchored" data-anchor-id="how-much-does-model-structure-matter">How much does model structure matter?</h3>
+<p>As discussed, there are many decisions an analyst needs to make when building the regression models described here. For example, what distributional assumptions align most closely with the observed data (Poisson vs.&nbsp;negative binomial, choice of link function, etc.), how to adjust for underlying trends, how to control for seasonality, and whether or not to directly model residual autocorrelation. The degree to which these decisions impact the final estimate and inference for the attributable percent will depend on the specific dataset. It is therefore a good idea to run ample sensitivity analyses to demonstrate the robustness of the results to model structure and to have a pre-specified plan in place for deciding among different models. Once the general structure of the model is determined (i.e., which components are important to include, informed by the sensitivity analyses described above), model comparison tools (e.g., Akaike information criterion) can be useful for selecting the most appropriate functional form for each component in the model. However, model fit alone is an incomplete guide as many competing methods can yield similar fit to the data but different counterfactual estimates and inference. For this reason, we generally prefer parsimonious models over alternatives that may offer increased flexibility at the cost of interpretation.</p>
+<p>As an example, we first fit a negative binomial regression model to the observed data from the main text, using the identity link function, categorical year variable to capture trend, categorical month variable to describe seasonality, linear influenza activity variable, and autocorrelated (of order 1) random effects to account for time series correlation. This model was selected based on comparing different versions of the model with alternative definitions and transformations for the included variables (e.g., linear vs.&nbsp;categorical, no random effects, etc.). Parameter estimates from this model were then treated as the “truth”, and a new dataset was simulated from the fitted model for analysis. Using the simulated data, we fit the ‘correct’ model to the data (i.e., the model that matches the data generating process for the simulated data), and then fit an alternative model where we adjusted for trend and seasonality in a more crude way (using quarterly vs.&nbsp;monthly categorical variables and using linear vs.&nbsp;categorical year trend), used the log link function instead of the identity link, and did not account for residual autocorrelation. In this example, the attributable percent for the correct model was estimated to be 3.97% (2.98 - 4.97), while the attributable percent over the entire study period for the mis-specified model was 5.26% (4.47 - 6.05). In this example the difference in the attributable percents is modest, and the conclusion does not appreciably change. Results in Figure 3 from the main text are based on fitting the correct model to these simulated data.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -968,7 +447,7 @@ Figure&nbsp;5: Estimated hospitalizations attributable to each respiratory virus
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/danweinberger\.github\.io\/pfizer_ts_attribution_explainer\/");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1256,46 +735,22 @@ Figure&nbsp;5: Estimated hospitalizations attributable to each respiratory virus
             }
           });
         }
-    const findCites = (el) => {
-      const parentEl = el.parentElement;
-      if (parentEl) {
-        const cites = parentEl.dataset.cites;
-        if (cites) {
-          return {
-            el,
-            cites: cites.split(' ')
-          };
-        } else {
-          return findCites(el.parentElement)
-        }
-      } else {
-        return undefined;
-      }
-    };
-    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
-    for (var i=0; i<bibliorefs.length; i++) {
-      const ref = bibliorefs[i];
-      const citeInfo = findCites(ref);
-      if (citeInfo) {
-        tippyHover(citeInfo.el, function() {
-          var popup = window.document.createElement('div');
-          citeInfo.cites.forEach(function(cite) {
-            var citeDiv = window.document.createElement('div');
-            citeDiv.classList.add('hanging-indent');
-            citeDiv.classList.add('csl-entry');
-            var biblioDiv = window.document.getElementById('ref-' + cite);
-            if (biblioDiv) {
-              citeDiv.innerHTML = biblioDiv.innerHTML;
-            }
-            popup.appendChild(citeDiv);
-          });
-          return popup.innerHTML;
-        });
-      }
-    }
   });
   </script>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Weinberger DM, Warren JL. Yale School of Public Health.</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>Built with Quarto</p>
+</div>
+  </div>
+</footer>
 
 
 

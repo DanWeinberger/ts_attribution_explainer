@@ -4,14 +4,28 @@ project:
 
 website:
   title: "Time Series Attribution for Respiratory Viruses"
+  site-url: "https://danweinberger.github.io/pfizer_ts_attribution_explainer/"
   navbar:
     background: primary
-    title: "TS Attribution Explainer"
+    title: "Estimating the burden of viruses from time series data"
+  page-footer:
+    left: "Weinberger DM, Warren JL. Yale School of Public Health."
+    right: "Built with Quarto"
 
 format:
   html:
     theme: flatly
+    css: styles.css
     toc: true
     toc-depth: 3
     toc-location: left
+    toc-title: "Contents"
     smooth-scroll: true
+    fontsize: "1rem"
+    linkcolor: "#2c5f7c"
+    mainfont: "Georgia, 'Times New Roman', serif"
+    number-sections: false
+    anchor-sections: true
+    citations-hover: false
+    grid:
+      body-width: 850px
