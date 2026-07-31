@@ -46,6 +46,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="site_libs/bootstrap/bootstrap-ae4a117e28ff9af9bfd45daaca56a090.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-contrib/glightbox/glightbox.min.js"></script>
+<link href="site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
+<link href="site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -230,7 +233,7 @@ window.Quarto = {
 <p>Unfortunately, estimating the burden of disease directly from routinely collected data is not reliable. Most individuals seeking healthcare for an infection are not tested for a specific microbe. As a result, the number of cases of disease caused by individual pathogens and captured by surveillance systems often represents a substantial undercount [<a href="https://pubmed.ncbi.nlm.nih.gov/34244735/">1</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/32710751/">2</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/28911764/">3</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/36963040/">4</a>]. For example, with respiratory syncytial virus (RSV), many of the children presenting to the hospital or emergency department with respiratory symptoms during the winter virus season will get tested for RSV, and those children’s illnesses will be correctly attributed to the virus (<strong>Figure 1</strong>). In adults, however, testing for RSV is much less common. Even when tested, the amount of the virus tends to be lower in adults, reducing the sensitivity of the tests and further leading to underdetection of infected individuals [<a href="https://pubmed.ncbi.nlm.nih.gov/36661222/">5</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/40250971/">6</a>]. As a result, fewer than 5% of people who actually have an illness caused by RSV have the virus correctly recorded as a contributing cause in their clinical records (<strong>Figure 1</strong>, [<a href="https://pubmed.ncbi.nlm.nih.gov/34244735/">1</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/15858184/">7</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/36707466/">8</a>]). Instead, unspecified viral pneumonia or respiratory infection could be recorded, contributing to underestimation of disease burden [<a href="https://pubmed.ncbi.nlm.nih.gov/31206246/">9</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/37747825/">10</a>]. This underdetection has been confirmed in a number of settings and using distinct methodologies [<a href="https://pubmed.ncbi.nlm.nih.gov/34244735/">1</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/36280891/">11</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/40810757/">12</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/41513868/">13</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/40289699/">14</a>,<a href="https://pubmed.ncbi.nlm.nih.gov/38319540/">15</a>].</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig1-age-undercounting.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></p>
+<p><a href="figures/fig1-age-undercounting.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1"><img src="figures/fig1-age-undercounting.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%"></a></p>
 </figure>
 </div>
 <p>The goal of this article is to provide clinical and policy experts with an overview and understanding of some of the commonly used statistical models for estimating the burden of disease caused by specific pathogens. We discuss how certain types of statistical models can be used to estimate the burden of disease caused by viral pathogens by coupling pathogen-specific data with data on non-specific outcomes like pneumonia. We provide an intuition for how these analyses work, discuss issues to be aware of when evaluating the rigor of these types of studies, and consider the validity of these estimates in relation to traditional clinic-based estimates.</p>
@@ -256,7 +259,7 @@ window.Quarto = {
 <p>The importance of different pathogens in contributing to these patterns can differ over the course of a season. For instance, at the height of winter, more of the cases will be due to influenza or RSV. The contributions from these viruses can often be seen in the time series as increases above a typical seasonal average. For instance, weekly pneumonia deaths in the US (<strong>Figure 2</strong>, upper panel) have broad seasonal variations, and in a severe flu season, there are clear increases above that seasonal average that line up with the spikes in influenza activity, as recorded by positive viral tests (<strong>Figure 2</strong>, lower panel).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig2-pneumonia-flu-timeseries.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
+<p><a href="figures/fig2-pneumonia-flu-timeseries.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2"><img src="figures/fig2-pneumonia-flu-timeseries.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></a></p>
 </figure>
 </div>
 <p>To understand how these types of statistical analyses work, we will use a simulated time series of pneumonia deaths (<strong>Figure 3</strong>). This time series is comprised of:</p>
@@ -279,7 +282,7 @@ window.Quarto = {
 </div>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="figures/fig3-decomposition.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+<p><a href="figures/fig3-decomposition.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3"><img src="figures/fig3-decomposition.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></a></p>
 </figure>
 </div>
 <p>The regression model estimates the intercept, which gives the average number of cases during the study period, and the relative contributions of trend, seasonality, and influenza (<span class="math inline">\(\beta_0, \beta_1, \beta_2, \beta_3\)</span>, respectively) (<strong>Figure 3A</strong>). The <span class="math inline">\(\beta_3\)</span> parameter acts as a multiplier that connects the influenza activity to the pneumonia time series and is the key part of the model for understanding what influenza may look like in the absence of flu activity. By including both seasonality (<span class="math inline">\(\beta_2\)</span>) and the influenza variable in the model, we can more accurately estimate how much of the variability in pneumonia rates is due to influenza and how much is due to typical seasonal variation. If the seasonal term is omitted from the model, then the model would incorrectly estimate that much of the seasonal variation is due to influenza, and <span class="math inline">\(\beta_3\)</span> would be poorly estimated. A similar effect would be seen when the trend is not included in the model, particularly if the influenza variable had a similar long-term trend.</p>
@@ -757,6 +760,38 @@ window.Quarto = {
     </div>
   </div>
 </footer>
+<script>var lightboxQuarto = GLightbox({"closeEffect":"zoom","descPosition":"bottom","loop":false,"openEffect":"zoom","selector":".lightbox"});
+(function() {
+  let previousOnload = window.onload;
+  window.onload = () => {
+    if (previousOnload) {
+      previousOnload();
+    }
+    lightboxQuarto.on('slide_before_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      const href = trigger.getAttribute('href');
+      if (href !== null) {
+        const imgEl = window.document.querySelector(`a[href="${href}"] img`);
+        if (imgEl !== null) {
+          const srcAttr = imgEl.getAttribute("src");
+          if (srcAttr && srcAttr.startsWith("data:")) {
+            slideConfig.href = srcAttr;
+          }
+        }
+      } 
+    });
+  
+    lightboxQuarto.on('slide_after_load', (data) => {
+      const { slideIndex, slideNode, slideConfig, player, trigger } = data;
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(slideNode);
+      }
+    });
+  
+  };
+  
+})();
+          </script>
 
 
 

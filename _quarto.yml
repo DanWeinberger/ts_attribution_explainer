@@ -17,6 +17,7 @@ format:
   html:
     theme: flatly
     css: styles.css
+    lightbox: true
     toc: true
     toc-depth: 3
     toc-location: left
