@@ -73,7 +73,10 @@ In the regression, the outcome variable ($Y_t$) is the number of pneumonia cases
 
 ::: {.equation-block}
 $$
-\text{Expected pneumonia cases at week } t: \quad E(Y_t) = \beta_0 + \beta_1 \cdot \text{Trend}_t + \beta_2 \cdot \text{Seasonality}_t + \beta_3 \cdot \text{Influenza}_t + \text{Noise}_t
+\begin{aligned}
+& \text{Expected pneumonia cases at week } t:\\
+& \quad  E(Y_t) = \beta_0 + \beta_1 \cdot \text{Trend}_t + \beta_2 \cdot \text{Seasonality}_t + \beta_3 \cdot \text{Influenza}_t + \text{Noise}_t
+\end{aligned}
 $$
 :::
 
@@ -87,7 +90,10 @@ Once we have fitted the regression, we have estimates (and measures of uncertain
 
 ::: {.equation-block}
 $$
-\text{Expected pneumonia cases at week } t \text{ without influenza}: \quad E(Y_{0t}) = \beta_0 + \beta_1 \cdot \text{Trend}_t + \beta_2 \cdot \text{Seasonality}_t + \beta_3 \cdot 0 + \text{Noise}_t
+\begin{aligned}
+& \text{Expected pneumonia cases at week } t \text{ without influenza:} \\
+& \quad E(Y_{0t}) = \beta_0 + \beta_1 \cdot \text{Trend}_t + \beta_2 \cdot \text{Seasonality}_t + \beta_3 \cdot 0 + \text{Noise}_t
+\end{aligned}
 $$
 :::
 

@@ -118,10 +118,6 @@ div.callout-note .callout-title-container {
 /* Model equations ---------------------------------------------------*/
 
 .equation-block {
-  background: var(--bg-soft);
-  border: 1px solid var(--border-soft);
-  border-radius: 6px;
-  padding: 1.25rem 1.5rem 0.75rem 1.5rem;
   margin: 1.5rem 0;
 }
 
