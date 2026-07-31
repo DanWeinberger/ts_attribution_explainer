@@ -1,17 +1,8 @@
 ---
 title: "How to Estimate the Burden of Disease Caused by Respiratory Viruses from Time Series Data"
 author:
-  - name: "Daniel M. Weinberger"
-    affiliations:
-      - ref: epi
-  - name: "Joshua L. Warren"
-    affiliations:
-      - ref: biostat
-affiliations:
-  - id: epi
-    name: "Department of Epidemiology of Microbial Diseases, Yale University, New Haven, CT"
-  - id: biostat
-    name: "Department of Biostatistics, Yale University, New Haven, CT"
+  - name: "Daniel M. Weinberger, Joshua L. Warren"
+    affiliation: "Department of Epidemiology of Microbial Diseases and Department of Biostatistics, Yale School of Public Health"
 date: today
 ---
 

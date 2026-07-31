@@ -20,8 +20,8 @@ body {
 /* Title block ---------------------------------------------------- */
 
 #title-block-header {
-  margin-bottom: 2.5rem;
-  padding-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
   border-bottom: 3px solid var(--accent);
 }
 
@@ -29,7 +29,7 @@ body {
   font-weight: 700;
   color: var(--accent-dark);
   line-height: 1.25;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 #title-block-header .subtitle {
@@ -37,20 +37,37 @@ body {
   font-weight: 400;
 }
 
-.quarto-title-author-name {
-  font-weight: 600;
-  color: var(--text-body);
+#title-block-header.quarto-title-block.default .quarto-title-meta-author {
+  display: block;
 }
 
-.quarto-title-affiliation,
-.quarto-title-author .affiliation {
+.quarto-title-meta-author .quarto-title-meta-heading {
+  display: none;
+}
+
+.quarto-title-meta-contents {
+  font-size: 0.92em;
+  line-height: 1.4;
+}
+
+.quarto-title-meta-contents p.author {
+  font-weight: 600;
+  color: var(--text-body);
+  margin-bottom: 0.15em;
+}
+
+.quarto-title-meta-contents p.affiliation {
   color: var(--text-muted);
-  font-size: 0.92rem;
+  margin-bottom: 0;
 }
 
 #title-block-header .quarto-title-meta {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   color: var(--text-muted);
+}
+
+#title-block-header .quarto-title-meta .quarto-title-meta-heading {
+  margin-top: 0;
 }
 
 /* Headings --------------------------------------------------------*/
